@@ -1,14 +1,16 @@
 ﻿namespace ByteBuffer
 {
     using System;
+    using System.Buffers;
     using System.IO;
+    using System.Text;
 
-    public class ByteBuffer
+    public class ByteBuffer : IDisposable
     {
         /// <summary>
         ///     Gets the default initial capacity.
         /// </summary>
-        public const int DefaultInitialCapacity = 4;
+        public const int DefaultInitialCapacity = 256;
 
         /// <summary>
         ///     An empty byte buffer.
@@ -21,6 +23,11 @@
         private readonly int _origin;
 
         /// <summary>
+        ///     The array pool the buffer was rent from.
+        /// </summary>
+        private readonly ArrayPool<byte> _pool;
+
+        /// <summary>
         ///     The local buffer storing the data.
         /// </summary>
         private byte[] _buffer;
@@ -31,9 +38,19 @@
         private int _capacity;
 
         /// <summary>
-        ///     The current cursor position.
+        ///     The current read / write position in the <see cref="_buffer"/>.
         /// </summary>
-        private int _position;
+        private int _cursor;
+
+        /// <summary>
+        ///     A value indicating whether the buffer was disposed.
+        /// </summary>
+        private bool _disposed;
+
+        /// <summary>
+        ///     The buffer length.
+        /// </summary>
+        private int _length;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
@@ -52,8 +69,10 @@
         {
             _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
             _origin = offset;
+            _cursor = offset;
+            _length = count;
+            _capacity = count;
 
-            Length = count;
             IsExposable = exposable;
             IsReadOnly = !writable;
             IsExpandable = false;
@@ -109,7 +128,40 @@
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
+        ///     Initializes a new instance of the <see cref="ByteBuffer"/> class with a pooled buffer backend.
+        /// </summary>
+        /// <param name="arrayPool">
+        ///     the byte array pool from which the <see cref="ByteBuffer"/> should be pooled from
+        /// </param>
+        /// <param name="initialCapacity">the initial buffer capacity</param>
+        /// <param name="expandable">a value indicating whether the buffer should be expandable</param>
+        /// <param name="writable">a value indicating whether the buffer should support writing</param>
+        /// <param name="exposable">
+        ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     thrown if the specified <paramref name="initialCapacity"/> is negative.
+        /// </exception>
+        public ByteBuffer(ArrayPool<byte> arrayPool, int initialCapacity = DefaultInitialCapacity,
+            bool expandable = true, bool writable = true, bool exposable = true)
+        {
+            if (initialCapacity < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(initialCapacity), initialCapacity,
+                    "The specified initial buffer capacity can not be null.");
+            }
+
+            _pool = arrayPool;
+            _buffer = arrayPool.Rent(initialCapacity);
+            _capacity = _buffer.Length;
+
+            IsExpandable = expandable;
+            IsReadOnly = !writable;
+            IsExposable = exposable;
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="ByteBuffer"/> class with a pooled buffer backend.
         /// </summary>
         /// <param name="initialCapacity">the initial buffer capacity</param>
         /// <param name="expandable">a value indicating whether the buffer should be expandable</param>
@@ -122,20 +174,14 @@
         /// </exception>
         public ByteBuffer(int initialCapacity = DefaultInitialCapacity,
             bool expandable = true, bool writable = true, bool exposable = true)
+            : this(DefaultBufferPool, initialCapacity, expandable, writable, exposable)
         {
-            if (initialCapacity < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(initialCapacity), initialCapacity,
-                    "The specified initial buffer capacity can not be null.");
-            }
-
-            _buffer = new byte[initialCapacity];
-            _capacity = initialCapacity;
-
-            IsExpandable = expandable;
-            IsReadOnly = !writable;
-            IsExposable = exposable;
         }
+
+        /// <summary>
+        ///     Gets the default array pool for pooled <see cref="ByteBuffer"/> instances.
+        /// </summary>
+        public static ArrayPool<byte> DefaultBufferPool => ArrayPool<byte>.Shared;
 
         /// <summary>
         ///     Gets or sets the number of allocated internal buffer bytes.
@@ -170,16 +216,19 @@
                     Array.Clear(_buffer, value, _capacity);
 
                     // shrink length and position
-                    _position = Math.Min(value, _position);
+                    _cursor = Math.Min(value, _cursor);
                     Length = value;
                 }
                 else
                 {
-                    // the buffer is expanding
-                    var newBuffer = new byte[value];
+                    // rent a new buffer with the capacity
+                    var newBuffer = _pool.Rent(value);
 
                     // copy bytes
                     Buffer.BlockCopy(_buffer, srcOffset: 0, newBuffer, dstOffset: 0, count: _buffer.Length);
+
+                    // return old buffer to array pool
+                    _pool.Return(_buffer);
 
                     // set the new buffer
                     _buffer = newBuffer;
@@ -206,6 +255,11 @@
         public bool IsExposable { get; }
 
         /// <summary>
+        ///     Gets a value indicating whether the buffer was pooled from an array pool.
+        /// </summary>
+        public bool IsPooled => _pool != null;
+
+        /// <summary>
         ///     Gets a value indicating whether the buffer is read-only.
         /// </summary>
         public bool IsReadOnly { get; }
@@ -213,14 +267,36 @@
         /// <summary>
         ///     Gets the current length of the buffer.
         /// </summary>
-        public int Length { get; private set; }
+        public int Length
+        {
+            get => _length;
+
+            set
+            {
+                // ensure length is not negative.
+                if (value < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value,
+                        "The specified length can not be negative.");
+                }
+
+                // check if the length is beyond the buffer capacity, then increase buffer size
+                if (value > Capacity)
+                {
+                    // increase capacity
+                    Capacity = value;
+                }
+
+                _length = value;
+            }
+        }
 
         /// <summary>
         ///     Gets or sets the current buffer cursor position.
         /// </summary>
         public int Position
         {
-            get => _position;
+            get => _cursor - _origin;
 
             set
             {
@@ -238,7 +314,7 @@
                         "The specified position can not be beyond the buffer capacity.");
                 }
 
-                _position = value;
+                _cursor = value + _origin;
             }
         }
 
@@ -301,6 +377,29 @@
         }
 
         /// <summary>
+        ///     Disposes the <see cref="ByteBuffer"/> instance and releases the buffer if it was rent
+        ///     from an array pool ( <see cref="IsPooled"/>).
+        /// </summary>
+        public virtual void Dispose()
+        {
+            if (_disposed)
+            {
+                // instance already disposed
+                return;
+            }
+
+            // set disposed flag
+            _disposed = true;
+
+            // check if the buffer was rent from the array pool
+            if (IsPooled)
+            {
+                // return the buffer to the array pool
+                _pool.Return(_buffer);
+            }
+        }
+
+        /// <summary>
         ///     Gets the internal buffer.
         /// </summary>
         /// <returns>the internal buffer</returns>
@@ -318,6 +417,231 @@
             // create array segment
             return new ArraySegment<byte>(_buffer, _origin, count: Remaining);
         }
+
+        /// <summary>
+        ///     Reads a <see cref="byte"/> sequence.
+        /// </summary>
+        /// <param name="count">the number of bytes to read</param>
+        /// <returns>the <see cref="byte"/> sequence</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public byte[] Read(int count)
+        {
+            var buffer = new byte[count];
+            ReadBytes(buffer, count);
+            return buffer;
+        }
+
+        /// <summary>
+        ///     Reads a <see cref="bool"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public bool ReadBoolean() => ReadByte() != 0;
+
+        /// <summary>
+        ///     Reads a <see cref="byte"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public byte ReadByte()
+        {
+            EnsureRemaining(1);
+            IncreasePosition(1);
+
+            return _buffer[_cursor - 1];
+        }
+
+        /// <summary>
+        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="count">the number of bytes to read</param>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public void ReadBytes(byte[] buffer, int count)
+            => ReadBytes(buffer, offset: 0, count);
+
+        /// <summary>
+        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public void ReadBytes(byte[] buffer)
+            => ReadBytes(buffer, offset: 0, buffer.Length);
+
+        /// <summary>
+        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public void ReadBytes(ArraySegment<byte> buffer)
+            => ReadBytes(buffer.Array, buffer.Offset, buffer.Count);
+
+        /// <summary>
+        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the buffer write offset</param>
+        /// <param name="count">the number of bytes to read</param>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public void ReadBytes(byte[] buffer, int offset, int count)
+        {
+            EnsureRemaining(count);
+            Buffer.BlockCopy(_buffer, _cursor, buffer, offset, count);
+            IncreasePosition(count);
+        }
+
+        /// <summary>
+        ///     Reads a <see cref="double"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public double ReadDouble()
+        {
+            var buffer = Read(sizeof(double));
+
+            // check if the buffer must be swapped to match endianness
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(buffer);
+            }
+
+            return BitConverter.ToDouble(buffer, startIndex: 0);
+        }
+
+        /// <summary>
+        ///     Reads a <see cref="float"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public float ReadFloat()
+        {
+            var buffer = Read(sizeof(float));
+
+            // check if the buffer must be swapped to match endianness
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(buffer);
+            }
+
+            return BitConverter.ToSingle(buffer, startIndex: 0);
+        }
+
+        /// <summary>
+        ///     Reads a <see cref="Guid"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public Guid ReadGuid() => new Guid(Read(16));
+
+        /// <summary>
+        ///     Reads an <see cref="int"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public int ReadInt()
+        {
+            var buffer = Read(4);
+
+            return (buffer[0] << 24) | (buffer[1] << 16)
+                | (buffer[2] << 8) | buffer[3];
+        }
+
+        /// <summary>
+        ///     Reads a <see cref="long"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public long ReadLong()
+        {
+            var buffer = Read(8);
+
+            var a = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
+            var b = (buffer[4] << 24) | (buffer[5] << 16) | (buffer[6] << 8) | buffer[7];
+
+            return (((long)a) << 32) | (uint)b;
+        }
+
+        /// <summary>
+        ///     Reads a <see cref="short"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public short ReadShort()
+        {
+            var buffer = Read(2);
+            return (short)((buffer[0] << 8) | buffer[1]);
+        }
+
+        /// <summary>
+        ///     Reads an UTF-8 encoded, length-prefixed <see cref="string"/>.
+        /// </summary>
+        /// <returns>the string read</returns>
+        public string ReadString() => ReadString(Encoding.UTF8);
+
+        /// <summary>
+        ///     Reads a length-prefixed <see cref="string"/> using the specified <paramref name="encoding"/>.
+        /// </summary>
+        /// <param name="encoding">the encoding to use</param>
+        /// <returns>the string read</returns>
+        public string ReadString(Encoding encoding)
+        {
+            // read the length prefix (a 2-byte long ushort indicating the number of bytes the string has)
+            var byteCount = ReadUShort();
+
+            // rent a buffer that can hold the string
+            var pooledBuffer = ArrayPool<byte>.Shared.Rent(byteCount);
+
+            // ensure the pooled buffer is returned to the pool even if an exception is thrown
+            try
+            {
+                // read data
+                ReadBytes(pooledBuffer, byteCount);
+
+                // decode string
+                return encoding.GetString(pooledBuffer, index: 0, byteCount);
+            }
+            finally
+            {
+                // release / return the buffer to the array pool
+                ArrayPool<byte>.Shared.Return(pooledBuffer);
+            }
+        }
+
+        /// <summary>
+        ///     Reads an <see cref="uint"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public uint ReadUInt()
+        {
+            var buffer = Read(4);
+
+            return (uint)((buffer[0] << 24) | (buffer[1] << 16)
+                | (buffer[2] << 8) | buffer[3]);
+        }
+
+        /// <summary>
+        ///     Reads an <see cref="ulong"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public ulong ReadULong() => (ulong)ReadLong();
+
+        /// <summary>
+        ///     Reads an <see cref="ushort"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public ushort ReadUShort()
+        {
+            var buffer = Read(2);
+            return (ushort)((buffer[0] << 8) | buffer[1]);
+        }
+
+        /// <summary>
+        ///     Resets the cursor position.
+        /// </summary>
+        public void Reset() => _cursor = _origin;
 
         /// <summary>
         ///     Creates an array of the buffer data.
@@ -395,11 +719,247 @@
                 throw new ArgumentNullException(nameof(buffer));
             }
 
-            // emulate the write
-            var writeOrigin = EmulateWrite(count);
+            // ensure enough capacity is remaining
+            EnsureCapacity(Position + count);
 
             // copy data
-            Buffer.BlockCopy(buffer, offset, _buffer, writeOrigin, count);
+            Buffer.BlockCopy(buffer, offset, _buffer, _cursor, count);
+            IncreasePosition(count);
+        }
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(int value) => Write(new[]
+        {
+            (byte)(value >> 24),
+            (byte)(value >> 16),
+            (byte)(value >> 8),
+            (byte)(value & 0xFF)
+        });
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(uint value) => Write(new[]
+        {
+            (byte)(value >> 24),
+            (byte)(value >> 16),
+            (byte)(value >> 8),
+            (byte)(value & 0xFF)
+        });
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(ushort value) => Write(new[]
+        {
+            (byte)(value >> 8),
+            (byte)(value & 0xFF)
+        });
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(float value)
+        {
+            // encode the float to a temporary buffer
+            var buffer = BitConverter.GetBytes(value);
+
+            // swap bytes to big-endian if required
+            if (BitConverter.IsLittleEndian)
+            {
+                // swap bytes
+                Array.Reverse(buffer);
+            }
+
+            // write buffer
+            Write(buffer);
+        }
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(double value)
+        {
+            // encode the double to a temporary buffer
+            var buffer = BitConverter.GetBytes(value);
+
+            // swap bytes to big-endian if required
+            if (BitConverter.IsLittleEndian)
+            {
+                // swap bytes
+                Array.Reverse(buffer);
+            }
+
+            // write buffer
+            Write(buffer);
+        }
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(bool value)
+            => Write((byte)(value ? 1 : 0));
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(short value) => Write(new[]
+        {
+            (byte)(value >> 8),
+            (byte)(value & 0xFF)
+        });
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(sbyte value) => Write((byte)value);
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(long value) => Write(new[]
+        {
+            (byte)(value >> 56),
+            (byte)(value >> 48),
+            (byte)(value >> 40),
+            (byte)(value >> 32),
+            (byte)(value >> 24),
+            (byte)(value >> 16),
+            (byte)(value >> 8),
+            (byte)(value & 0xFF)
+        });
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(ulong value) => Write(new[]
+        {
+            (byte)(value >> 56),
+            (byte)(value >> 48),
+            (byte)(value >> 40),
+            (byte)(value >> 32),
+            (byte)(value >> 24),
+            (byte)(value >> 16),
+            (byte)(value >> 8),
+            (byte)(value & 0xFF)
+        });
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        public void Write(Guid value) => Write(value.ToByteArray());
+
+        /// <summary>
+        ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
+        ///     prefix to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="charCount">the number of characters</param>
+        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+        public int Write(string value, int charCount) => Write(value, charCount, Encoding.UTF8);
+
+        /// <summary>
+        ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
+        ///     prefix to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+        public int Write(string value) => Write(value, Encoding.UTF8);
+
+        /// <summary>
+        ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
+        ///     prefix to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="charIndex">the character index</param>
+        /// <param name="charCount">the number of characters</param>
+        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+        public int Write(string value, int charIndex, int charCount)
+            => Write(value, charIndex, charCount, Encoding.UTF8);
+
+        /// <summary>
+        ///     Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
+        ///     2-byte <see cref="ushort"/> length prefix to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="charCount">the number of characters</param>
+        /// <param name="encoding">the encoding to use</param>
+        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+        public int Write(string value, int charCount, Encoding encoding)
+            => Write(value, charIndex: 0, charCount, encoding);
+
+        /// <summary>
+        ///     Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
+        ///     2-byte <see cref="ushort"/> length prefix to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="encoding">the encoding to use</param>
+        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+        public int Write(string value, Encoding encoding)
+            => Write(value, charIndex: 0, value.Length, encoding);
+
+        /// <summary>
+        ///     Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
+        ///     2-byte <see cref="ushort"/> length prefix to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="charIndex">the character index</param>
+        /// <param name="charCount">the number of characters</param>
+        /// <param name="encoding">the encoding to use</param>
+        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+        public int Write(string value, int charIndex, int charCount, Encoding encoding)
+        {
+            // rent a buffer that can hold the string and the 2-byte ushort length prefix
+            var pooledBuffer = ArrayPool<byte>.Shared.Rent(encoding.GetMaxByteCount(charCount) + 2);
+
+            // ensure the pooled buffer is returned to the pool even if an exception is thrown
+            try
+            {
+                // encode the string starting at buffer offset 2
+                var length = encoding.GetBytes(value, charIndex, charCount, pooledBuffer, byteIndex: 2);
+
+                // encode length prefix
+                pooledBuffer[0] = (byte)(length >> 8);
+                pooledBuffer[1] = (byte)(length & 0xFF);
+
+                // write buffer
+                Write(pooledBuffer, offset: 0, length + 2);
+
+                return length + 2;
+            }
+            finally
+            {
+                // release / return the buffer to the array pool
+                ArrayPool<byte>.Shared.Return(pooledBuffer);
+            }
+        }
+
+        protected void EnsureCapacity(int count)
+        {
+            EnsureWritable();
+
+            // check if the required byte count is already satisfied
+            if (Capacity >= count)
+            {
+                // there are enough bytes remaining
+                return;
+            }
+
+            // we have to increase the capacity (in 256 byte chunks)
+            Capacity += (((_capacity + count) >> 8) + 1) << 8;
         }
 
         /// <summary>
@@ -410,25 +970,30 @@
         /// </exception>
         protected void EnsureExpandable()
         {
-            if (!IsExpandable)
+            if (!IsExpandable || !IsPooled)
             {
                 throw new InvalidOperationException("The buffer is not expandable.");
             }
         }
 
+        /// <summary>
+        ///     Ensures that the instance was not disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">
+        ///     thrown if the <see cref="ByteBuffer"/> instance is disposed.
+        /// </exception>
+        protected void EnsureNotDisposed()
+        {
+            // check if the instance was already disposed
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(ByteBuffer));
+            }
+        }
+
         protected void EnsureRemaining(int count)
         {
-            EnsureWritable();
-
-            // check if the required byte count is already satisfied
-            if (Remaining >= count)
-            {
-                // there are enough bytes remaining
-                return;
-            }
-
-            // we have to increase the capacity
-            Capacity += Math.Max(256, count);
+            // TODO
         }
 
         /// <summary>
@@ -445,18 +1010,10 @@
             }
         }
 
-        private int EmulateWrite(int count)
+        private void IncreasePosition(int count)
         {
-            // ensure enough capacity is remaining
-            EnsureRemaining(count);
-
-            var origin = _position;
-
-            // copy data
-            Length += count;
-            _position += count;
-
-            return origin;
+            _cursor += count;
+            _length = Math.Max(_cursor - _origin, _length);
         }
     }
 }
