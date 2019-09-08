@@ -10,6 +10,11 @@
         public const int DefaultInitialCapacity = 4;
 
         /// <summary>
+        ///     An empty byte buffer.
+        /// </summary>
+        private static readonly byte[] _empty = new byte[0];
+
+        /// <summary>
         ///     The general buffer write offset (not the writing position).
         /// </summary>
         private readonly int _origin;
@@ -25,12 +30,7 @@
         private int _capacity;
 
         /// <summary>
-        ///     The number of bytes used.
-        /// </summary>
-        private int _length;
-
-        /// <summary>
-        ///     The current buffer cursor position.
+        ///     The current cursor position.
         /// </summary>
         private int _position;
 
@@ -51,8 +51,8 @@
         {
             _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
             _origin = offset;
-            _length = count;
 
+            Length = count;
             IsExposable = exposable;
             IsReadOnly = !writable;
             IsExpandable = false;
@@ -67,6 +67,9 @@
         /// <param name="exposable">
         ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+        /// </exception>
         public ByteBuffer(byte[] buffer, int count, bool writable = true, bool exposable = true)
             : this(buffer, offset: 0, count, writable, exposable)
         {
@@ -80,6 +83,9 @@
         /// <param name="exposable">
         ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+        /// </exception>
         public ByteBuffer(byte[] buffer, bool writable = true, bool exposable = true)
             : this(buffer, offset: 0, buffer.Length, writable, exposable)
         {
@@ -93,6 +99,9 @@
         /// <param name="exposable">
         ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+        /// </exception>
         public ByteBuffer(ArraySegment<byte> buffer, bool writable = true, bool exposable = true)
             : this(buffer.Array, buffer.Offset, buffer.Count, writable, exposable)
         {
@@ -107,11 +116,20 @@
         /// <param name="exposable">
         ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
         /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     thrown if the specified <paramref name="initialCapacity"/> is negative.
+        /// </exception>
         public ByteBuffer(int initialCapacity = DefaultInitialCapacity,
             bool expandable = true, bool writable = true, bool exposable = true)
         {
+            if (initialCapacity < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(initialCapacity), initialCapacity,
+                    "The specified initial buffer capacity can not be null.");
+            }
+
             _buffer = new byte[initialCapacity];
-            _length = initialCapacity;
+            _capacity = initialCapacity;
 
             IsExpandable = expandable;
             IsReadOnly = !writable;
@@ -149,6 +167,10 @@
                 {
                     // clear shrink-ed bytes
                     Array.Clear(_buffer, value, _capacity);
+
+                    // shrink length and position
+                    _position = Math.Min(value, _position);
+                    Length = value;
                 }
                 else
                 {
@@ -168,6 +190,11 @@
         }
 
         /// <summary>
+        ///     Gets a value indicating whether the buffer is empty.
+        /// </summary>
+        public bool IsEmpty => Length == 0;
+
+        /// <summary>
         ///     Gets a value indicating whether the buffer is expandable.
         /// </summary>
         public bool IsExpandable { get; }
@@ -183,9 +210,41 @@
         public bool IsReadOnly { get; }
 
         /// <summary>
+        ///     Gets the current length of the buffer.
+        /// </summary>
+        public int Length { get; private set; }
+
+        /// <summary>
+        ///     Gets or sets the current buffer cursor position.
+        /// </summary>
+        public int Position
+        {
+            get => _position;
+
+            set
+            {
+                // ensure position is not negative.
+                if (value < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value,
+                        "The specified position can not be negative");
+                }
+
+                // ensure position is less than capacity
+                if (value >= Capacity)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value,
+                        "The specified position can not be beyond the buffer capacity.");
+                }
+
+                _position = value;
+            }
+        }
+
+        /// <summary>
         ///     Gets the amount of bytes remaining until the buffer is full.
         /// </summary>
-        public int Remaining => _length - _position;
+        public int Remaining => Length - Position;
 
         /// <summary>
         ///     Gets or sets the <see cref="byte"/> at the specified zero-based <paramref name="index"/>.
@@ -210,7 +269,7 @@
             set
             {
                 // ensure the index is in range
-                if ((uint)index >= (uint)_length)
+                if ((uint)index >= (uint)Length)
                 {
                     // The index was out of range
                     throw new IndexOutOfRangeException();
@@ -230,9 +289,7 @@
         public void Clear()
         {
             EnsureWritable();
-
-            // clear buffer
-            Array.Clear(_buffer, _origin, _capacity);
+            Capacity = 0;
         }
 
         /// <summary>
@@ -255,9 +312,27 @@
         }
 
         /// <summary>
+        ///     Creates an array of the buffer data.
+        /// </summary>
+        /// <returns>an array of the buffer data</returns>
+        public byte[] ToArray()
+        {
+            if (IsEmpty)
+            {
+                // return empty buffer
+                return _empty;
+            }
+
+            // copy data
+            var buffer = new byte[Length];
+            Buffer.BlockCopy(_buffer, _origin, buffer, 0, Length);
+            return buffer;
+        }
+
+        /// <summary>
         ///     Trims the internal buffer to the number of bytes used.
         /// </summary>
-        public void Trim() => Capacity = _length;
+        public void Trim() => Capacity = Length;
 
         /// <summary>
         ///     Tries to get the internal buffer.
@@ -277,6 +352,46 @@
             // create array segment
             buffer = new ArraySegment<byte>(_buffer, _origin, count: Remaining);
             return true;
+        }
+
+        /// <summary>
+        ///     Writes the specified <paramref name="value"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value</param>
+        public void Write(byte value) => Write(new[] { value }, 0, 1);
+
+        /// <summary>
+        ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="count">the number of bytes to write</param>
+        public void Write(byte[] buffer, int count) => Write(buffer, offset: 0, count);
+
+        /// <summary>
+        ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        public void Write(byte[] buffer) => Write(buffer, offset: 0, buffer.Length);
+
+        /// <summary>
+        ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the buffer read offset</param>
+        /// <param name="count">the number of bytes to write</param>
+        public void Write(byte[] buffer, int offset, int count)
+        {
+            // null-check buffer
+            if (buffer is null)
+            {
+                throw new ArgumentNullException(nameof(buffer));
+            }
+
+            // emulate the write
+            var writeOrigin = EmulateWrite(count);
+
+            // copy data
+            Buffer.BlockCopy(buffer, offset, _buffer, writeOrigin, count);
         }
 
         /// <summary>
@@ -320,6 +435,20 @@
             {
                 throw new InvalidOperationException("The buffer is read-only.");
             }
+        }
+
+        private int EmulateWrite(int count)
+        {
+            // ensure enough capacity is remaining
+            EnsureRemaining(count);
+
+            var origin = _position;
+
+            // copy data
+            Length += count;
+            _position += count;
+
+            return origin;
         }
     }
 }
