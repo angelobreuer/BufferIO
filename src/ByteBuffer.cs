@@ -835,6 +835,20 @@
         /// <param name="buffer">the buffer</param>
         /// <param name="offset">the buffer read offset</param>
         /// <param name="count">the number of bytes to write</param>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+        /// </exception>
+        public void Write(ArraySegment<byte> buffer) => Write(buffer.Array, buffer.Offset, buffer.Count);
+
+        /// <summary>
+        ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the buffer read offset</param>
+        /// <param name="count">the number of bytes to write</param>
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
         /// </exception>
