@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using Xunit;
 
@@ -41,6 +42,31 @@
                 yield return new[] { buffer };
             }
         }
+
+        public static IEnumerable<object> GenerateSingleUnionData()
+        {
+            var random = new Random();
+
+            var buffer = new byte[random.Next(400)];
+            random.NextBytes(buffer);
+
+            yield return (byte)random.Next(byte.MinValue, byte.MaxValue); // byte
+            yield return (sbyte)random.Next(sbyte.MinValue, sbyte.MaxValue); // sbyte
+            yield return (short)random.Next(short.MinValue, short.MaxValue); // short
+            yield return (ushort)random.Next(ushort.MinValue, ushort.MaxValue); // ushort
+            yield return random.Next(); // int
+            yield return (uint)random.Next(); // uint
+            yield return (long)random.Next(); // long
+            yield return (ulong)random.Next(); // ulong
+            yield return (float)random.NextDouble(); // float
+            yield return random.NextDouble(); // double
+            yield return Guid.NewGuid(); // guid
+            yield return buffer; // byte[]
+            yield return Encoding.UTF8.GetString(buffer); // string
+        }
+
+        public static IEnumerable<object[]> GenerateUnionData(int cycles)
+                    => Enumerable.Range(0, cycles).Select(_ => GenerateSingleUnionData().ToArray());
 
         /// <summary>
         ///     Tests clearing the buffer.
@@ -673,21 +699,39 @@
         }
 
         [Theory]
-        [MemberData(nameof(GenerateRandomData), 8)]
-        public void UnionTest(byte[] buffer)
+        [MemberData(nameof(GenerateUnionData), 20)]
+        public void UnionTest(byte a, sbyte b, short c, ushort d, int e, uint f, long g, ulong h, float i, double j, Guid k, byte[] l, string m)
         {
-            var guid = Guid.NewGuid();
-
-            // write test data
-            Buffer.Write(buffer);
-            Buffer.Write(guid);
-            Buffer.Write(12);
+            // write
+            Buffer.Write(a);
+            Buffer.Write(b);
+            Buffer.Write(c);
+            Buffer.Write(d);
+            Buffer.Write(e);
+            Buffer.Write(f);
+            Buffer.Write(g);
+            Buffer.Write(h);
+            Buffer.Write(i);
+            Buffer.Write(j);
+            Buffer.Write(k);
+            Buffer.Write(l);
+            Buffer.Write(m);
             Buffer.Reset();
 
-            // verify test data
-            Assert.Equal(buffer, Buffer.Read(buffer.Length));
-            Assert.Equal(guid, Buffer.ReadGuid());
-            Assert.Equal(12, Buffer.ReadInt());
+            // read and verify
+            Assert.Equal(Buffer.ReadByte(), a);
+            Assert.Equal(Buffer.ReadSByte(), b);
+            Assert.Equal(Buffer.ReadShort(), c);
+            Assert.Equal(Buffer.ReadUShort(), d);
+            Assert.Equal(Buffer.ReadInt(), e);
+            Assert.Equal(Buffer.ReadUInt(), f);
+            Assert.Equal(Buffer.ReadLong(), g);
+            Assert.Equal(Buffer.ReadULong(), h);
+            Assert.Equal(Buffer.ReadFloat(), i);
+            Assert.Equal(Buffer.ReadDouble(), j);
+            Assert.Equal(Buffer.ReadGuid(), k);
+            Assert.Equal(Buffer.Read(l.Length), l);
+            Assert.Equal(Buffer.ReadString(), m);
         }
 
         private static byte[] GetEquivalent<TValue>(TValue value, Func<TValue, byte[]> converter, bool swapEndianness = true)
