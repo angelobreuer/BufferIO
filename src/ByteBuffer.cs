@@ -15,14 +15,14 @@
         private readonly int _origin;
 
         /// <summary>
-        ///     The number of bytes allocated for the buffer.
-        /// </summary>
-        private int _allocated;
-
-        /// <summary>
         ///     The local buffer storing the data.
         /// </summary>
         private byte[] _buffer;
+
+        /// <summary>
+        ///     The number of bytes allocated for the buffer.
+        /// </summary>
+        private int _capacity;
 
         /// <summary>
         ///     The number of bytes used.
@@ -119,6 +119,69 @@
         }
 
         /// <summary>
+        ///     Clears the buffer.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        public void Clear()
+        {
+            EnsureWritable();
+
+            // clear buffer
+            Array.Clear(_buffer, _origin, _capacity);
+        }
+
+        /// <summary>
+        ///     Gets or sets the number of allocated internal buffer bytes.
+        /// </summary>
+        public int Capacity
+        {
+            get => _capacity;
+
+            set
+            {
+                // check if the capacity has not changed
+                if (_capacity == value)
+                {
+                    // the capacity did remain the same
+                    return;
+                }
+
+                // ensure that the capacity is not negative
+                if (value < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value,
+                        "The specified capacity can not be negative.");
+                }
+
+                // ensure the buffer is expandable
+                EnsureExpandable();
+
+                // check if the buffer is shrinking
+                if (value < _capacity)
+                {
+                    // clear shrink-ed bytes
+                    Array.Clear(_buffer, value, _capacity);
+                }
+                else
+                {
+                    // the buffer is expanding
+                    var newBuffer = new byte[value];
+
+                    // copy bytes
+                    Buffer.BlockCopy(_buffer, srcOffset: 0, newBuffer, dstOffset: 0, count: _buffer.Length);
+
+                    // set the new buffer
+                    _buffer = newBuffer;
+                }
+
+                // set new capacity
+                _capacity = value;
+            }
+        }
+
+        /// <summary>
         ///     Gets a value indicating whether the buffer is expandable.
         /// </summary>
         public bool IsExpandable { get; }
@@ -209,6 +272,49 @@
             // create array segment
             buffer = new ArraySegment<byte>(_buffer, _origin, count: Remaining);
             return true;
+        }
+
+        /// <summary>
+        ///     Ensures that the buffer is expandable.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+        /// </exception>
+        protected void EnsureExpandable()
+        {
+            if (!IsExpandable)
+            {
+                throw new InvalidOperationException("The buffer is not expandable.");
+            }
+        }
+
+        protected void EnsureRemaining(int count)
+        {
+            EnsureWritable();
+
+            // check if the required byte count is already satisfied
+            if (Remaining >= count)
+            {
+                // there are enough bytes remaining
+                return;
+            }
+
+            // we have to increase the capacity
+            Capacity += Math.Max(256, count);
+        }
+
+        /// <summary>
+        ///     Ensures that the buffer is writable.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        protected void EnsureWritable()
+        {
+            if (IsReadOnly)
+            {
+                throw new InvalidOperationException("The buffer is read-only.");
+            }
         }
     }
 }
