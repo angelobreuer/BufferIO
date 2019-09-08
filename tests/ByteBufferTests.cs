@@ -672,6 +672,24 @@
             Assert.Equal(GetEquivalent(value, BitConverter.GetBytes), Buffer.ToArray());
         }
 
+        [Theory]
+        [MemberData(nameof(GenerateRandomData), 8)]
+        public void UnionTest(byte[] buffer)
+        {
+            var guid = Guid.NewGuid();
+
+            // write test data
+            Buffer.Write(buffer);
+            Buffer.Write(guid);
+            Buffer.Write(12);
+            Buffer.Reset();
+
+            // verify test data
+            Assert.Equal(buffer, Buffer.Read(buffer.Length));
+            Assert.Equal(guid, Buffer.ReadGuid());
+            Assert.Equal(12, Buffer.ReadInt());
+        }
+
         private static byte[] GetEquivalent<TValue>(TValue value, Func<TValue, byte[]> converter, bool swapEndianness = true)
         {
             // get value equivalent (in system-endian)
