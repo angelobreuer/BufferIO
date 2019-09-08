@@ -1,6 +1,7 @@
 ﻿namespace ByteBuffer
 {
     using System;
+    using System.IO;
 
     public class ByteBuffer
     {
@@ -279,6 +280,13 @@
                 _buffer[index] = value;
             }
         }
+
+        /// <summary>
+        ///     Creates a memory stream from the buffer.
+        /// </summary>
+        /// <returns>the memory stream</returns>
+        public MemoryStream AsMemoryStream()
+            => new MemoryStream(_buffer, _origin, Length, !IsReadOnly);
 
         /// <summary>
         ///     Clears the buffer.
