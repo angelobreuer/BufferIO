@@ -4,6 +4,8 @@
     using System.Buffers;
     using System.IO;
     using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public unsafe class ByteBuffer : IDisposable
     {
@@ -420,6 +422,55 @@
         {
             EnsureWritable();
             Capacity = 0;
+        }
+
+        /// <summary>
+        ///     Copies the internal buffer to the specified <paramref name="stream"/>.
+        /// </summary>
+        /// <param name="stream">the stream to copy the buffer to</param>
+        /// <param name="full">
+        ///     a value indicating whether the full buffer should be copied (
+        ///     <see langword="false"/>, from start to end); or the buffer from the current cursor to
+        ///     the end ( <see langword="true"/>).
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="stream"/> is <see langword="null"/>.
+        /// </exception>
+        public void CopyTo(Stream stream, bool full = true)
+        {
+            if (stream is null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            stream.Write(_buffer, full ? _origin : _cursor, _length);
+        }
+
+        /// <summary>
+        ///     Copies the internal buffer to the specified <paramref name="stream"/> asynchronously.
+        /// </summary>
+        /// <param name="stream">the stream to copy the buffer to</param>
+        /// <param name="full">
+        ///     a value indicating whether the full buffer should be copied (
+        ///     <see langword="false"/>, from start to end); or the buffer from the current cursor to
+        ///     the end ( <see langword="true"/>).
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     a cancellation token used to propagate notification that the asynchronous operation
+        ///     should be canceled.
+        /// </param>
+        /// <returns>a task that represents the asynchronous operation</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     thrown if the specified <paramref name="stream"/> is <see langword="null"/>.
+        /// </exception>
+        public Task CopyToAsync(Stream stream, bool full = true, CancellationToken cancellationToken = default)
+        {
+            if (stream is null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            return stream.WriteAsync(_buffer, full ? _origin : _cursor, _length, cancellationToken);
         }
 
         /// <summary>
@@ -1012,20 +1063,6 @@
             }
         }
 
-        private int EmulateWrite(int count)
-        {
-            // store current cursor position
-            var cursorPosition = _cursor;
-
-            // ensure enough capacity is remaining
-            EnsureCapacity(Position + count);
-
-            // increase position
-            IncreasePosition(count);
-
-            return cursorPosition;
-        }
-
         /// <summary>
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
@@ -1268,6 +1305,20 @@
             {
                 throw new InvalidOperationException("The buffer is read-only.");
             }
+        }
+
+        private int EmulateWrite(int count)
+        {
+            // store current cursor position
+            var cursorPosition = _cursor;
+
+            // ensure enough capacity is remaining
+            EnsureCapacity(Position + count);
+
+            // increase position
+            IncreasePosition(count);
+
+            return cursorPosition;
         }
 
         private void IncreasePosition(int count)
