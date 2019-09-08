@@ -119,20 +119,6 @@
         }
 
         /// <summary>
-        ///     Clears the buffer.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        public void Clear()
-        {
-            EnsureWritable();
-
-            // clear buffer
-            Array.Clear(_buffer, _origin, _capacity);
-        }
-
-        /// <summary>
         ///     Gets or sets the number of allocated internal buffer bytes.
         /// </summary>
         public int Capacity
@@ -236,6 +222,20 @@
         }
 
         /// <summary>
+        ///     Clears the buffer.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        public void Clear()
+        {
+            EnsureWritable();
+
+            // clear buffer
+            Array.Clear(_buffer, _origin, _capacity);
+        }
+
+        /// <summary>
         ///     Gets the internal buffer.
         /// </summary>
         /// <returns>the internal buffer</returns>
@@ -253,6 +253,11 @@
             // create array segment
             return new ArraySegment<byte>(_buffer, _origin, count: Remaining);
         }
+
+        /// <summary>
+        ///     Trims the internal buffer to the number of bytes used.
+        /// </summary>
+        public void Trim() => Capacity = _length;
 
         /// <summary>
         ///     Tries to get the internal buffer.
