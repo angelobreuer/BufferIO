@@ -599,15 +599,15 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public double ReadDouble()
         {
-            var buffer = Read(sizeof(double));
+            // ensure enough bytes are remaining to read the value
+            EnsureRemaining(sizeof(double));
 
-            // check if the buffer must be swapped to match endianness
-            if (BitConverter.IsLittleEndian)
+            // fix the buffer in the memory
+            fixed (byte* ptr = &_buffer[_cursor])
             {
-                Array.Reverse(buffer);
+                // decode value from buffer
+                return BigEndian.ToDouble(ptr);
             }
-
-            return BitConverter.ToDouble(buffer, startIndex: 0);
         }
 
         /// <summary>
@@ -617,15 +617,15 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public float ReadFloat()
         {
-            var buffer = Read(sizeof(float));
+            // ensure enough bytes are remaining to read the value
+            EnsureRemaining(sizeof(float));
 
-            // check if the buffer must be swapped to match endianness
-            if (BitConverter.IsLittleEndian)
+            // fix the buffer in the memory
+            fixed (byte* ptr = &_buffer[_cursor])
             {
-                Array.Reverse(buffer);
+                // decode value from buffer
+                return BigEndian.ToFloat(ptr);
             }
-
-            return BitConverter.ToSingle(buffer, startIndex: 0);
         }
 
         /// <summary>
