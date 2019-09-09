@@ -7,7 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public unsafe class ByteBuffer : IDisposable
+    public unsafe class ByteBuffer : IBuffer, IDisposable
     {
         /// <summary>
         ///     Gets the default initial capacity.
@@ -240,6 +240,11 @@
                 _capacity = value;
             }
         }
+
+        /// <summary>
+        ///     Gets the buffer endianness.
+        /// </summary>
+        public Endianness Endianness { get; } = Endianness.BigEndian;
 
         /// <summary>
         ///     Gets a value indicating whether the buffer is empty.
@@ -549,13 +554,6 @@
         }
 
         /// <summary>
-        ///     Reads a <see cref="sbyte"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public sbyte ReadSByte() => (sbyte)ReadByte();
-
-        /// <summary>
         ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
         /// </summary>
         /// <param name="buffer">the buffer</param>
@@ -664,6 +662,13 @@
 
             return (((long)a) << 32) | (uint)b;
         }
+
+        /// <summary>
+        ///     Reads a <see cref="sbyte"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public sbyte ReadSByte() => (sbyte)ReadByte();
 
         /// <summary>
         ///     Reads a <see cref="short"/> value from the buffer.
