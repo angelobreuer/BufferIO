@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Text;
     using Xunit;
 
@@ -385,6 +386,28 @@
             Assert.Equal(value, Buffer.ReadULong());
         }
 
+        [Theory]
+        [MemberData(nameof(GenerateRandomData), 10)]
+        public unsafe void TestReadUnsafe(byte[] buffer)
+        {
+            // write the data
+            Buffer.Write(buffer);
+            Buffer.Reset();
+
+            // allocate unsafe buffer on stack
+            var buf = stackalloc byte[buffer.Length];
+
+            // read to buffer
+            Buffer.ReadBytes(buf, buffer.Length);
+
+            // create managed buffer
+            var data = new byte[buffer.Length];
+            Marshal.Copy(new IntPtr(buf), data, 0, data.Length);
+
+            // verify
+            Assert.Equal(buffer, data);
+        }
+
         /// <summary>
         ///     Tests reading an <see cref="ushort"/> value.
         /// </summary>
@@ -680,6 +703,23 @@
 
             // ensure the buffers are equal
             Assert.Equal(GetEquivalent(value, BitConverter.GetBytes), Buffer.ToArray());
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateRandomData), 10)]
+        public unsafe void TestWriteUnsafe(byte[] buffer)
+        {
+            // fix the test data buffer in memory
+            fixed (byte* ptr = buffer)
+            {
+                // write data
+                Buffer.Write(ptr, buffer.Length);
+                Buffer.Reset();
+            }
+
+            // read data
+            var data = Buffer.Read(buffer.Length);
+            Assert.Equal(buffer, data);
         }
 
         /// <summary>
