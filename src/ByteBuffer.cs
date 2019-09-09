@@ -557,10 +557,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public byte ReadByte()
         {
-            EnsureRemaining(1);
-            IncreasePosition(1);
-
-            return _buffer[_cursor - 1];
+            var cursor = EmulateRead(1);
+            return _buffer[cursor];
         }
 
         /// <summary>
@@ -597,9 +595,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public void ReadBytes(byte[] buffer, int offset, int count)
         {
-            EnsureRemaining(count);
-            Buffer.BlockCopy(_buffer, _cursor, buffer, offset, count);
-            IncreasePosition(count);
+            var cursor = EmulateRead(count);
+            Buffer.BlockCopy(_buffer, cursor, buffer, offset, count);
         }
 
         /// <summary>
@@ -609,15 +606,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public double ReadDouble()
         {
-            // ensure enough bytes are remaining to read the value
-            EnsureRemaining(sizeof(double));
-
-            // fix the buffer in the memory
-            fixed (byte* ptr = &_buffer[_cursor])
-            {
-                // decode value from buffer
-                return BigEndian.ToDouble(ptr);
-            }
+            var cursor = EmulateRead(sizeof(double));
+            return BigEndian.ToDouble(_buffer, cursor);
         }
 
         /// <summary>
@@ -627,15 +617,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public float ReadFloat()
         {
-            // ensure enough bytes are remaining to read the value
-            EnsureRemaining(sizeof(float));
-
-            // fix the buffer in the memory
-            fixed (byte* ptr = &_buffer[_cursor])
-            {
-                // decode value from buffer
-                return BigEndian.ToFloat(ptr);
-            }
+            var cursor = EmulateRead(sizeof(float));
+            return BigEndian.ToFloat(_buffer, cursor);
         }
 
         /// <summary>
@@ -652,15 +635,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public int ReadInt()
         {
-            // ensure enough bytes are remaining to read the value
-            EnsureRemaining(sizeof(int));
-
-            // fix the buffer in the memory
-            fixed (byte* ptr = &_buffer[_cursor])
-            {
-                // decode value from buffer
-                return BigEndian.ToInt32(ptr);
-            }
+            var cursor = EmulateRead(sizeof(int));
+            return BigEndian.ToInt32(_buffer, cursor);
         }
 
         /// <summary>
@@ -670,15 +646,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public long ReadLong()
         {
-            // ensure enough bytes are remaining to read the value
-            EnsureRemaining(sizeof(long));
-
-            // fix the buffer in the memory
-            fixed (byte* ptr = &_buffer[_cursor])
-            {
-                // decode value from buffer
-                return BigEndian.ToInt64(ptr);
-            }
+            var cursor = EmulateRead(sizeof(long));
+            return BigEndian.ToInt64(_buffer, cursor);
         }
 
         /// <summary>
@@ -695,15 +664,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public short ReadShort()
         {
-            // ensure enough bytes are remaining to read the value
-            EnsureRemaining(sizeof(short));
-
-            // fix the buffer in the memory
-            fixed (byte* ptr = &_buffer[_cursor])
-            {
-                // decode value from buffer
-                return BigEndian.ToInt16(ptr);
-            }
+            var cursor = EmulateRead(sizeof(short));
+            return BigEndian.ToInt16(_buffer, cursor);
         }
 
         /// <summary>
@@ -748,15 +710,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public uint ReadUInt()
         {
-            // ensure enough bytes are remaining to read the value
-            EnsureRemaining(sizeof(uint));
-
-            // fix the buffer in the memory
-            fixed (byte* ptr = &_buffer[_cursor])
-            {
-                // decode value from buffer
-                return BigEndian.ToUInt32(ptr);
-            }
+            var cursor = EmulateRead(sizeof(uint));
+            return BigEndian.ToUInt32(_buffer, cursor);
         }
 
         /// <summary>
@@ -766,15 +721,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public ulong ReadULong()
         {
-            // ensure enough bytes are remaining to read the value
-            EnsureRemaining(sizeof(ulong));
-
-            // fix the buffer in the memory
-            fixed (byte* ptr = &_buffer[_cursor])
-            {
-                // decode value from buffer
-                return BigEndian.ToUInt64(ptr);
-            }
+            var cursor = EmulateRead(sizeof(ulong));
+            return BigEndian.ToUInt64(_buffer, cursor);
         }
 
         /// <summary>
@@ -784,15 +732,8 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public ushort ReadUShort()
         {
-            // ensure enough bytes are remaining to read the value
-            EnsureRemaining(sizeof(ushort));
-
-            // fix the buffer in the memory
-            fixed (byte* ptr = &_buffer[_cursor])
-            {
-                // decode value from buffer
-                return BigEndian.ToUInt16(ptr);
-            }
+            var cursor = EmulateRead(sizeof(ushort));
+            return BigEndian.ToUInt16(_buffer, cursor);
         }
 
         /// <summary>
@@ -1331,6 +1272,20 @@
             {
                 throw new InvalidOperationException("The buffer is read-only.");
             }
+        }
+
+        private int EmulateRead(int count)
+        {
+            // ensure enough bytes are available to read
+            EnsureRemaining(count);
+
+            // store current cursor position
+            var cursorPosition = _cursor;
+
+            // increase position
+            IncreasePosition(count);
+
+            return cursorPosition;
         }
 
         private int EmulateWrite(int count)
