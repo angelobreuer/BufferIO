@@ -6,23 +6,31 @@
     using System.Text;
     using Util;
 
+    /// <summary>
+    ///     Wrapper class for a big-endian binary writer that writes to an underlying stream.
+    /// </summary>
     public class BinaryWriter : IDisposable
     {
-        protected readonly byte[] _writeBuffer;
-        private readonly bool _leaveOpen;
-
         /// <summary>
         ///     The maximum encoded byte size of string.
         /// </summary>
         public const int MaximumStringByteSize = 0xFFFF;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="BinaryStream"/> class.
+        ///     The internal write buffer.
+        /// </summary>
+        /// <seealso cref="FlushWriteBuffer(int)"/>
+        protected readonly byte[] _writeBuffer;
+
+        private readonly bool _leaveOpen;
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="BinaryWriter"/> class.
         /// </summary>
         /// <param name="baseStream">the base stream to write to / read from</param>
         /// <param name="leaveOpen">
         ///     a value indicating whether the specified <paramref name="baseStream"/> should be left
-        ///     open when the <see cref="BinaryStream"/> is closed.
+        ///     open when the <see cref="BinaryWriter"/> is closed.
         /// </param>
         public BinaryWriter(Stream baseStream, bool leaveOpen = false)
         {
@@ -68,26 +76,12 @@
         /// <exception cref="ArgumentNullException">
         ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(byte[] buffer) => BaseStream.Write(buffer, 0, count: buffer.Length);
 
         /// <summary>
         ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
         /// </summary>
         /// <param name="buffer">the buffer</param>
-        /// <param name="offset">the buffer read offset</param>
-        /// <param name="count">the number of bytes to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(ArraySegment<byte> buffer) => BaseStream.Write(buffer.Array, buffer.Offset, buffer.Count);
 
         /// <summary>
@@ -108,24 +102,12 @@
         /// <exception cref="ArgumentOutOfRangeException">
         ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
         /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(byte[] buffer, int offset, int count) => BaseStream.Write(buffer, offset, count);
 
         /// <summary>
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(int value)
         {
             BigEndian.GetBytes(_writeBuffer, value);
@@ -136,12 +118,6 @@
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(uint value)
         {
             BigEndian.GetBytes(_writeBuffer, value);
@@ -152,12 +128,6 @@
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(ushort value)
         {
             BigEndian.GetBytes(_writeBuffer, value);
@@ -168,12 +138,6 @@
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(float value)
         {
             BigEndian.GetBytes(_writeBuffer, value);
@@ -184,12 +148,6 @@
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(double value)
         {
             BigEndian.GetBytes(_writeBuffer, value);
@@ -200,12 +158,6 @@
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(short value)
         {
             BigEndian.GetBytes(_writeBuffer, value);
@@ -216,24 +168,12 @@
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(sbyte value) => Write((byte)value);
 
         /// <summary>
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(long value)
         {
             BigEndian.GetBytes(_writeBuffer, value);
@@ -244,12 +184,6 @@
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(ulong value)
         {
             BigEndian.GetBytes(_writeBuffer, value);
@@ -260,12 +194,6 @@
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public void Write(Guid value) => Write(value.ToByteArray());
 
         /// <summary>
@@ -275,12 +203,6 @@
         /// <param name="value">the value to write</param>
         /// <param name="charCount">the number of characters</param>
         /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         public int Write(string value, int charCount) => Write(value, charCount, Encoding.UTF8);
 
         /// <summary>
@@ -289,12 +211,6 @@
         /// </summary>
         /// <param name="value">the value to write</param>
         /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
         ///     length ( <c>0xFFFF</c>)
@@ -309,12 +225,6 @@
         /// <param name="charIndex">the character index</param>
         /// <param name="charCount">the number of characters</param>
         /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
         ///     length ( <c>0xFFFF</c>)
@@ -329,12 +239,6 @@
         /// <param name="charCount">the number of characters</param>
         /// <param name="encoding">the encoding to use</param>
         /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
         ///     length ( <c>0xFFFF</c>)
@@ -348,12 +252,6 @@
         /// <param name="value">the value to write</param>
         /// <param name="encoding">the encoding to use</param>
         /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
         ///     length ( <c>0xFFFF</c>)
@@ -369,12 +267,6 @@
         /// <param name="charCount">the number of characters</param>
         /// <param name="encoding">the encoding to use</param>
         /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
         ///     length ( <c>0xFFFF</c>)

@@ -8,6 +8,10 @@
     using System.Threading.Tasks;
     using Util;
 
+    /// <summary>
+    ///     A class for a bi-directional (write and read), big-endian byte buffer which supports
+    ///     buffer pooling and user-provided buffers.
+    /// </summary>
     public unsafe class ByteBuffer : IDisposable
     {
         /// <summary>
@@ -145,7 +149,7 @@
         /// <param name="expandable">a value indicating whether the buffer should be expandable</param>
         /// <param name="writable">a value indicating whether the buffer should support writing</param>
         /// <param name="exposable">
-        ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
+        ///     a value indicating whether the specified <see cref="ByteBuffer"/> should be exposable
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     thrown if the specified <paramref name="initialCapacity"/> is negative.
@@ -175,7 +179,7 @@
         /// <param name="expandable">a value indicating whether the buffer should be expandable</param>
         /// <param name="writable">a value indicating whether the buffer should support writing</param>
         /// <param name="exposable">
-        ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
+        ///     a value indicating whether the specified <see cref="ByteBuffer"/> should be exposable
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     thrown if the specified <paramref name="initialCapacity"/> is negative.
@@ -889,8 +893,6 @@
         ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
         /// </summary>
         /// <param name="buffer">the buffer</param>
-        /// <param name="offset">the buffer read offset</param>
-        /// <param name="count">the number of bytes to write</param>
         /// <exception cref="InvalidOperationException">
         ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
         /// </exception>
@@ -1255,19 +1257,23 @@
             }
         }
 
-        protected void EnsureCapacity(int count)
+        /// <summary>
+        ///     Ensures that the buffer has the specified <paramref name="capacity"/>.
+        /// </summary>
+        /// <param name="capacity">the target buffer capacity</param>
+        protected void EnsureCapacity(int capacity)
         {
             EnsureWritable();
 
             // check if the required byte count is already satisfied
-            if (Capacity >= count)
+            if (Capacity >= capacity)
             {
                 // there are enough bytes remaining
                 return;
             }
 
             // we have to increase the capacity (in 256 byte chunks)
-            Capacity += (((_capacity + count) >> 8) + 1) << 8;
+            Capacity += (((_capacity + capacity) >> 8) + 1) << 8;
         }
 
         /// <summary>

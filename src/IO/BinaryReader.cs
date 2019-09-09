@@ -6,9 +6,17 @@
     using System.Text;
     using Util;
 
+    /// <summary>
+    ///     Wrapper class for a big-endian binary reader that reads from an underlying stream.
+    /// </summary>
     public class BinaryReader : IDisposable
     {
+        /// <summary>
+        ///     The internal read buffer.
+        /// </summary>
+        /// <seealso cref="FillReadBuffer(int)"/>
         protected readonly byte[] _readBuffer;
+
         private readonly bool _leaveOpen;
 
         /// <summary>
@@ -17,7 +25,7 @@
         /// <param name="baseStream">the base stream to write to / read from</param>
         /// <param name="leaveOpen">
         ///     a value indicating whether the specified <paramref name="baseStream"/> should be left
-        ///     open when the <see cref="BinaryStream"/> is closed.
+        ///     open when the <see cref="BinaryReader"/> is closed.
         /// </param>
         public BinaryReader(Stream baseStream, bool leaveOpen = false)
         {

@@ -203,7 +203,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, int value, int byteOffset = 0)
         {
@@ -232,7 +232,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, uint value, int byteOffset = 0)
         {
@@ -261,7 +261,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, short value, int byteOffset = 0)
         {
@@ -290,7 +290,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, ushort value, int byteOffset = 0)
         {
@@ -319,7 +319,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, long value, int byteOffset = 0)
         {
@@ -348,7 +348,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, ulong value, int byteOffset = 0)
         {
@@ -377,7 +377,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, sbyte value, int byteOffset = 0)
         {
@@ -406,7 +406,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, byte value, int byteOffset = 0)
         {
@@ -435,7 +435,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, bool value, int byteOffset = 0)
         {
@@ -464,7 +464,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, float value, int byteOffset = 0)
         {
@@ -493,7 +493,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, double value, int byteOffset = 0)
         {
@@ -522,7 +522,7 @@
         ///     thrown if the specified <paramref name="byteOffset"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the value.
         /// </exception>
         public static int GetBytes(byte[] buffer, decimal value, int byteOffset = 0)
         {

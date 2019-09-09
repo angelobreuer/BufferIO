@@ -60,10 +60,9 @@
             => Array.Reverse(buffer, index: 0, count);
 
         /// <summary>
-        ///     Swaps the endianness of the specified <paramref name="buffer"/>.
+        ///     Swaps the endianness of the whole <paramref name="buffer"/>.
         /// </summary>
         /// <param name="buffer">the buffer to swap the bytes</param>
-        /// <param name="count">the buffer swap count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SwapEndianness(byte[] buffer) => Array.Reverse(buffer);
     }
