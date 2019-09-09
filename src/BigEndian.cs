@@ -769,6 +769,31 @@
         public static double ToDouble(byte* buffer, int offset) => ToDouble(&buffer[offset]);
 
         /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="double"/> value.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="double"/> value</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
+        /// </exception>
+        public static double ToDouble(byte[] buffer, int offset = 0)
+        {
+            // range check offset
+            if (buffer.Length < offset + sizeof(double))
+            {
+                throw new InvalidOperationException("The specified buffer is too small.");
+            }
+
+            // fix buffer in memory
+            fixed (byte* ptr = &buffer[offset])
+            {
+                // convert value
+                return ToDouble(ptr);
+            }
+        }
+
+        /// <summary>
         ///     Converts the specified <paramref name="buffer"/> to a <see cref="short"/> value.
         /// </summary>
         /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
@@ -780,6 +805,31 @@
 
             // reinterpret value
             return *(double*)&value;
+        }
+
+        /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="float"/> value.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="float"/> value</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
+        /// </exception>
+        public static float ToFloat(byte[] buffer, int offset = 0)
+        {
+            // range check offset
+            if (buffer.Length < offset + sizeof(float))
+            {
+                throw new InvalidOperationException("The specified buffer is too small.");
+            }
+
+            // fix buffer in memory
+            fixed (byte* ptr = &buffer[offset])
+            {
+                // convert value
+                return ToFloat(ptr);
+            }
         }
 
         /// <summary>
@@ -808,6 +858,31 @@
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="short"/> value.
         /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="short"/> value</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
+        /// </exception>
+        public static short ToInt16(byte[] buffer, int offset = 0)
+        {
+            // range check offset
+            if (buffer.Length < offset + sizeof(short))
+            {
+                throw new InvalidOperationException("The specified buffer is too small.");
+            }
+
+            // fix buffer in memory
+            fixed (byte* ptr = &buffer[offset])
+            {
+                // convert value
+                return ToInt16(ptr);
+            }
+        }
+
+        /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="short"/> value.
+        /// </summary>
         /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
         /// <param name="offset">the zero-based buffer offset</param>
         /// <returns>the <see cref="short"/> value</returns>
@@ -821,6 +896,31 @@
         /// <returns>the <see cref="short"/> value</returns>
         public static short ToInt16(byte* buffer)
             => (short)((buffer[0] << 8) | buffer[1]);
+
+        /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="int"/> value.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="int"/> value</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
+        /// </exception>
+        public static int ToInt32(byte[] buffer, int offset = 0)
+        {
+            // range check offset
+            if (buffer.Length < offset + sizeof(int))
+            {
+                throw new InvalidOperationException("The specified buffer is too small.");
+            }
+
+            // fix buffer in memory
+            fixed (byte* ptr = &buffer[offset])
+            {
+                // convert value
+                return ToInt32(ptr);
+            }
+        }
 
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="int"/> value.
@@ -839,6 +939,31 @@
         public static int ToInt32(byte* buffer)
             => (buffer[0] << 24) | (buffer[1] << 16)
              | (buffer[2] << 8) | buffer[3];
+
+        /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="long"/> value.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="long"/> value</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
+        /// </exception>
+        public static long ToInt64(byte[] buffer, int offset = 0)
+        {
+            // range check offset
+            if (buffer.Length < offset + sizeof(long))
+            {
+                throw new InvalidOperationException("The specified buffer is too small.");
+            }
+
+            // fix buffer in memory
+            fixed (byte* ptr = &buffer[offset])
+            {
+                // convert value
+                return ToInt64(ptr);
+            }
+        }
 
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="long"/> value.
@@ -863,6 +988,31 @@
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="ushort"/> value.
         /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="ushort"/> value</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
+        /// </exception>
+        public static ushort ToUInt16(byte[] buffer, int offset = 0)
+        {
+            // range check offset
+            if (buffer.Length < offset + sizeof(ushort))
+            {
+                throw new InvalidOperationException("The specified buffer is too small.");
+            }
+
+            // fix buffer in memory
+            fixed (byte* ptr = &buffer[offset])
+            {
+                // convert value
+                return ToUInt16(ptr);
+            }
+        }
+
+        /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="ushort"/> value.
+        /// </summary>
         /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
         /// <param name="offset">the zero-based buffer offset</param>
         /// <returns>the <see cref="ushort"/> value</returns>
@@ -876,6 +1026,31 @@
         /// <returns>the <see cref="ushort"/> value</returns>
         public static ushort ToUInt16(byte* buffer)
             => (ushort)((buffer[0] << 8) | buffer[1]);
+
+        /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="uint"/> value.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="uint"/> value</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
+        /// </exception>
+        public static uint ToUInt32(byte[] buffer, int offset = 0)
+        {
+            // range check offset
+            if (buffer.Length < offset + sizeof(uint))
+            {
+                throw new InvalidOperationException("The specified buffer is too small.");
+            }
+
+            // fix buffer in memory
+            fixed (byte* ptr = &buffer[offset])
+            {
+                // convert value
+                return ToUInt32(ptr);
+            }
+        }
 
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="uint"/> value.
@@ -894,6 +1069,31 @@
         public static uint ToUInt32(byte* buffer)
             => (uint)((buffer[0] << 24) | (buffer[1] << 16)
              | (buffer[2] << 8) | buffer[3]);
+
+        /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="ulong"/> value.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="ulong"/> value</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
+        /// </exception>
+        public static ulong ToUInt64(byte[] buffer, int offset = 0)
+        {
+            // range check offset
+            if (buffer.Length < offset + sizeof(ulong))
+            {
+                throw new InvalidOperationException("The specified buffer is too small.");
+            }
+
+            // fix buffer in memory
+            fixed (byte* ptr = &buffer[offset])
+            {
+                // convert value
+                return ToUInt64(ptr);
+            }
+        }
 
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="ulong"/> value.
