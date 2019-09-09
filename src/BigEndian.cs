@@ -760,6 +760,52 @@
         }
 
         /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="double"/> value.
+        /// </summary>
+        /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="double"/> value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double ToDouble(byte* buffer, int offset) => ToDouble(&buffer[offset]);
+
+        /// <summary>
+        ///     Converts the specified <paramref name="buffer"/> to a <see cref="short"/> value.
+        /// </summary>
+        /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
+        /// <returns>the <see cref="double"/> value</returns>
+        public static double ToDouble(byte* buffer)
+        {
+            // read binary double representation (long)
+            var value = ToInt64(buffer);
+
+            // reinterpret value
+            return *(double*)&value;
+        }
+
+        /// <summary>
+        ///     Converts the <paramref name="buffer"/> to an <see cref="float"/> value.
+        /// </summary>
+        /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
+        /// <param name="offset">the zero-based buffer offset</param>
+        /// <returns>the <see cref="float"/> value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float ToFloat(byte* buffer, int offset) => ToFloat(&buffer[offset]);
+
+        /// <summary>
+        ///     Converts the specified <paramref name="buffer"/> to a <see cref="float"/> value.
+        /// </summary>
+        /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
+        /// <returns>the <see cref="float"/> value</returns>
+        public static float ToFloat(byte* buffer)
+        {
+            // read binary float representation (int)
+            var value = ToInt32(buffer);
+
+            // reinterpret value
+            return *(float*)&value;
+        }
+
+        /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="short"/> value.
         /// </summary>
         /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
