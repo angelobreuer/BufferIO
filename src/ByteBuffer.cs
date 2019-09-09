@@ -893,6 +893,26 @@
         }
 
         /// <summary>
+        ///     Writes the specified <paramref name="buffer"/> to the buffer.
+        /// </summary>
+        /// <param name="buffer">
+        ///     a pointer pointing to the memory address of the first element of the buffer to copy
+        ///     to the internal buffer
+        /// </param>
+        /// <param name="count">the number of bytes to copy</param>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+        /// </exception>
+        public void Write(byte* buffer, int count)
+        {
+            var cursor = EmulateWrite(count);
+            Marshal.Copy(new IntPtr(buffer), _buffer, cursor, count);
+        }
+
+        /// <summary>
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
