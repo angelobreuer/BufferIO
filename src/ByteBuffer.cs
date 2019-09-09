@@ -642,10 +642,15 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public int ReadInt()
         {
-            var buffer = Read(4);
+            // ensure enough bytes are remaining to read the value
+            EnsureRemaining(sizeof(int));
 
-            return (buffer[0] << 24) | (buffer[1] << 16)
-                | (buffer[2] << 8) | buffer[3];
+            // fix the buffer in the memory
+            fixed (byte* ptr = &_buffer[_cursor])
+            {
+                // decode value from buffer
+                return BigEndian.ToInt32(ptr);
+            }
         }
 
         /// <summary>
@@ -655,12 +660,15 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public long ReadLong()
         {
-            var buffer = Read(8);
+            // ensure enough bytes are remaining to read the value
+            EnsureRemaining(sizeof(long));
 
-            var a = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
-            var b = (buffer[4] << 24) | (buffer[5] << 16) | (buffer[6] << 8) | buffer[7];
-
-            return (((long)a) << 32) | (uint)b;
+            // fix the buffer in the memory
+            fixed (byte* ptr = &_buffer[_cursor])
+            {
+                // decode value from buffer
+                return BigEndian.ToInt64(ptr);
+            }
         }
 
         /// <summary>
@@ -677,8 +685,15 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public short ReadShort()
         {
-            var buffer = Read(2);
-            return (short)((buffer[0] << 8) | buffer[1]);
+            // ensure enough bytes are remaining to read the value
+            EnsureRemaining(sizeof(short));
+
+            // fix the buffer in the memory
+            fixed (byte* ptr = &_buffer[_cursor])
+            {
+                // decode value from buffer
+                return BigEndian.ToInt16(ptr);
+            }
         }
 
         /// <summary>
@@ -723,10 +738,15 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public uint ReadUInt()
         {
-            var buffer = Read(4);
+            // ensure enough bytes are remaining to read the value
+            EnsureRemaining(sizeof(uint));
 
-            return (uint)((buffer[0] << 24) | (buffer[1] << 16)
-                | (buffer[2] << 8) | buffer[3]);
+            // fix the buffer in the memory
+            fixed (byte* ptr = &_buffer[_cursor])
+            {
+                // decode value from buffer
+                return BigEndian.ToUInt32(ptr);
+            }
         }
 
         /// <summary>
@@ -734,7 +754,18 @@
         /// </summary>
         /// <returns>the value read</returns>
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public ulong ReadULong() => (ulong)ReadLong();
+        public ulong ReadULong()
+        {
+            // ensure enough bytes are remaining to read the value
+            EnsureRemaining(sizeof(ulong));
+
+            // fix the buffer in the memory
+            fixed (byte* ptr = &_buffer[_cursor])
+            {
+                // decode value from buffer
+                return BigEndian.ToUInt64(ptr);
+            }
+        }
 
         /// <summary>
         ///     Reads an <see cref="ushort"/> value from the buffer.
@@ -743,8 +774,15 @@
         /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         public ushort ReadUShort()
         {
-            var buffer = Read(2);
-            return (ushort)((buffer[0] << 8) | buffer[1]);
+            // ensure enough bytes are remaining to read the value
+            EnsureRemaining(sizeof(ushort));
+
+            // fix the buffer in the memory
+            fixed (byte* ptr = &_buffer[_cursor])
+            {
+                // decode value from buffer
+                return BigEndian.ToUInt16(ptr);
+            }
         }
 
         /// <summary>
