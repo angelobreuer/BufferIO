@@ -344,6 +344,15 @@
             <param name="count">the number of bytes to read</param>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
+        <member name="M:ByteBuffer.ByteBuffer.ReadBytes(System.Byte*,System.Int32)">
+            <summary>
+                Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+            </summary>
+            <param name="buffer">
+                the memory address of the first element to write the data to
+            </param>
+            <param name="count">the number of bytes to read</param>
+        </member>
         <member name="M:ByteBuffer.ByteBuffer.ReadDouble">
             <summary>
                 Reads a <see cref="T:System.Double"/> value from the buffer.
@@ -527,6 +536,22 @@
             <exception cref="T:System.ArgumentOutOfRangeException">
                 thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
             </exception>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+            </exception>
+        </member>
+        <member name="M:ByteBuffer.ByteBuffer.Write(System.Byte*,System.Int32)">
+            <summary>
+                Writes the specified <paramref name="buffer"/> to the buffer.
+            </summary>
+            <param name="buffer">
+                a pointer pointing to the memory address of the first element of the buffer to copy
+                to the internal buffer
+            </param>
+            <param name="count">the number of bytes to copy</param>
             <exception cref="T:System.InvalidOperationException">
                 thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
             </exception>
