@@ -1352,9 +1352,18 @@
             }
         }
 
+        /// <summary>
+        ///     Ensures that a specific amount of bytes is remaining to read / write in the buffer.
+        /// </summary>
+        /// <param name="count">the number of bytes</param>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
         protected void EnsureRemaining(int count)
         {
-            // TODO
+            if (Remaining < count)
+            {
+                throw new InvalidOperationException("The buffer is too small." +
+                    $"\nThere are {Remaining} bytes remaining, but {count} bytes are required.");
+            }
         }
 
         /// <summary>
