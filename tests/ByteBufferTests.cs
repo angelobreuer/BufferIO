@@ -190,18 +190,20 @@
         {
             // create the byte buffer with a custom backend buffer
             var myBuffer = new byte[buffer.Length * 2];
-            var byteBuffer = new ByteBuffer(myBuffer, buffer.Length, buffer.Length) { Length = 0 };
 
             // the expected buffer
             var expectedBuffer = new byte[buffer.Length * 2];
             Array.Copy(buffer, 0, expectedBuffer, buffer.Length, buffer.Length);
 
-            // fill data
-            byteBuffer.Write(buffer);
+            using (var byteBuffer = new ByteBuffer(myBuffer, buffer.Length, buffer.Length) { Length = 0 })
+            {
+                // fill data
+                byteBuffer.Write(buffer);
 
-            // ensure buffer matches
-            Assert.Equal(buffer, byteBuffer.ToArray());
-            Assert.Equal(expectedBuffer, myBuffer);
+                // ensure buffer matches
+                Assert.Equal(buffer, byteBuffer.ToArray());
+                Assert.Equal(expectedBuffer, myBuffer);
+            }
         }
 
         [Theory]

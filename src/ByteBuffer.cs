@@ -15,6 +15,11 @@
         public const int DefaultInitialCapacity = 256;
 
         /// <summary>
+        ///     The maximum encoded byte size of string.
+        /// </summary>
+        public const int MaximumStringByteSize = 0xFFFF;
+
+        /// <summary>
         ///     An empty byte buffer.
         /// </summary>
         private static readonly byte[] _empty = new byte[0];
@@ -942,13 +947,7 @@
         public void Write(int value)
         {
             var position = EmulateWrite(sizeof(int));
-
-            // fix buffer in memory
-            fixed (byte* ptr = _buffer)
-            {
-                // encode bytes
-                BigEndian.GetBytes(&ptr[position], value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -964,13 +963,7 @@
         public void Write(uint value)
         {
             var position = EmulateWrite(sizeof(uint));
-
-            // fix buffer in memory
-            fixed (byte* ptr = _buffer)
-            {
-                // encode bytes
-                BigEndian.GetBytes(&ptr[position], value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -986,13 +979,7 @@
         public void Write(ushort value)
         {
             var position = EmulateWrite(sizeof(ushort));
-
-            // fix buffer in memory
-            fixed (byte* ptr = _buffer)
-            {
-                // encode bytes
-                BigEndian.GetBytes(&ptr[position], value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -1008,13 +995,7 @@
         public void Write(float value)
         {
             var position = EmulateWrite(sizeof(float));
-
-            // fix buffer in memory
-            fixed (byte* ptr = &_buffer[position])
-            {
-                // encode bytes
-                BigEndian.GetBytes(ptr, value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -1030,13 +1011,7 @@
         public void Write(double value)
         {
             var position = EmulateWrite(sizeof(double));
-
-            // fix buffer in memory
-            fixed (byte* ptr = &_buffer[position])
-            {
-                // encode bytes
-                BigEndian.GetBytes(ptr, value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -1052,13 +1027,7 @@
         public void Write(bool value)
         {
             var position = EmulateWrite(sizeof(bool));
-
-            // fix buffer in memory
-            fixed (byte* ptr = &_buffer[position])
-            {
-                // encode bytes
-                BigEndian.GetBytes(ptr, value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -1074,13 +1043,7 @@
         public void Write(short value)
         {
             var position = EmulateWrite(sizeof(short));
-
-            // fix buffer in memory
-            fixed (byte* ptr = _buffer)
-            {
-                // encode bytes
-                BigEndian.GetBytes(&ptr[position], value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -1096,13 +1059,7 @@
         public void Write(sbyte value)
         {
             var position = EmulateWrite(sizeof(sbyte));
-
-            // fix buffer in memory
-            fixed (byte* ptr = &_buffer[position])
-            {
-                // encode bytes
-                BigEndian.GetBytes(ptr, value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -1118,13 +1075,7 @@
         public void Write(long value)
         {
             var position = EmulateWrite(sizeof(long));
-
-            // fix buffer in memory
-            fixed (byte* ptr = _buffer)
-            {
-                // encode bytes
-                BigEndian.GetBytes(&ptr[position], value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -1140,13 +1091,7 @@
         public void Write(ulong value)
         {
             var position = EmulateWrite(sizeof(ulong));
-
-            // fix buffer in memory
-            fixed (byte* ptr = &_buffer[position])
-            {
-                // encode bytes
-                BigEndian.GetBytes(ptr, value);
-            }
+            BigEndian.GetBytes(_buffer, value, position);
         }
 
         /// <summary>
@@ -1287,9 +1232,10 @@
                 var length = encoding.GetBytes(value, charIndex, charCount, pooledBuffer, byteIndex: 2);
 
                 // ensure the length does not overflow
-                if (length > 0xFFFF)
+                if (length > MaximumStringByteSize)
                 {
-                    throw new ArgumentException("The specified string overflows the maximum encoded byte length (0xFFFF).", nameof(value));
+                    throw new ArgumentException($"The specified string overflows the maximum " +
+                        $"encoded byte length ({MaximumStringByteSize}, 0xFFFF)", nameof(value));
                 }
 
                 // encode length prefix
