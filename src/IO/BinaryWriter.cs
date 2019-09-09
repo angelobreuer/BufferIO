@@ -4,6 +4,7 @@
     using System.Buffers;
     using System.IO;
     using System.Text;
+    using Util;
 
     public class BinaryWriter : IDisposable
     {

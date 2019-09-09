@@ -6,8 +6,9 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Util;
 
-    public unsafe class ByteBuffer : IBuffer, IDisposable
+    public unsafe class ByteBuffer : IDisposable
     {
         /// <summary>
         ///     Gets the default initial capacity.

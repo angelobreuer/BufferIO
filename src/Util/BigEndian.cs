@@ -895,7 +895,7 @@
         /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
         /// <returns>the <see cref="short"/> value</returns>
         public static short ToInt16(byte* buffer)
-            => (short)(buffer[0] << 8 | buffer[1]);
+            => (short)((buffer[0] << 8) | buffer[1]);
 
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="int"/> value.
@@ -937,8 +937,8 @@
         /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
         /// <returns>the <see cref="int"/> value</returns>
         public static int ToInt32(byte* buffer)
-            => buffer[0] << 24 | buffer[1] << 16
-             | buffer[2] << 8 | buffer[3];
+            => (buffer[0] << 24) | (buffer[1] << 16)
+             | (buffer[2] << 8) | buffer[3];
 
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="long"/> value.
@@ -981,8 +981,8 @@
         /// <returns>the <see cref="long"/> value</returns>
         public static long ToInt64(byte* buffer)
         {
-            var value = (long)(buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3]);
-            return value << 32 | (uint)(buffer[4] << 24 | buffer[5] << 16 | buffer[6] << 8 | buffer[7]);
+            var value = (long)((buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3]);
+            return (value << 32) | (uint)((buffer[4] << 24) | (buffer[5] << 16) | (buffer[6] << 8) | buffer[7]);
         }
 
         /// <summary>
@@ -1025,7 +1025,7 @@
         /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
         /// <returns>the <see cref="ushort"/> value</returns>
         public static ushort ToUInt16(byte* buffer)
-            => (ushort)(buffer[0] << 8 | buffer[1]);
+            => (ushort)((buffer[0] << 8) | buffer[1]);
 
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="uint"/> value.
@@ -1067,8 +1067,8 @@
         /// <param name="buffer">a pointer pointing to the memory address of the buffer</param>
         /// <returns>the <see cref="uint"/> value</returns>
         public static uint ToUInt32(byte* buffer)
-            => (uint)(buffer[0] << 24 | buffer[1] << 16
-             | buffer[2] << 8 | buffer[3]);
+            => (uint)((buffer[0] << 24) | (buffer[1] << 16)
+             | (buffer[2] << 8) | buffer[3]);
 
         /// <summary>
         ///     Converts the <paramref name="buffer"/> to an <see cref="ulong"/> value.
@@ -1111,8 +1111,8 @@
         /// <returns>the <see cref="ulong"/> value</returns>
         public static ulong ToUInt64(byte* buffer)
         {
-            var value = (ulong)(buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3]);
-            return value << 32 | (uint)(buffer[4] << 24 | buffer[5] << 16 | buffer[6] << 8 | buffer[7]);
+            var value = (ulong)((buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3]);
+            return (value << 32) | (uint)((buffer[4] << 24) | (buffer[5] << 16) | (buffer[6] << 8) | buffer[7]);
         }
     }
 }
