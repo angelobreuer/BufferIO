@@ -3,6 +3,7 @@
     using System;
     using System.Buffers;
     using System.IO;
+    using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -597,6 +598,19 @@
         {
             var cursor = EmulateRead(count);
             Buffer.BlockCopy(_buffer, cursor, buffer, offset, count);
+        }
+
+        /// <summary>
+        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+        /// </summary>
+        /// <param name="buffer">
+        ///     the memory address of the first element to write the data to
+        /// </param>
+        /// <param name="count">the number of bytes to read</param>
+        public void ReadBytes(byte* buffer, int count)
+        {
+            var cursor = EmulateRead(count);
+            Marshal.Copy(_buffer, cursor, new IntPtr(buffer), count);
         }
 
         /// <summary>
