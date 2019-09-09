@@ -1,4 +1,4 @@
-﻿namespace ByteBuffer
+﻿namespace ByteBuffer.Util
 {
     /// <summary>
     ///     A set of the supported endianness (see: https://en.wikipedia.org/wiki/Endianness for more

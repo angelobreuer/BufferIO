@@ -1,4 +1,4 @@
-﻿namespace ByteBuffer
+﻿namespace ByteBuffer.Util
 {
     using System;
     using System.Runtime.CompilerServices;
