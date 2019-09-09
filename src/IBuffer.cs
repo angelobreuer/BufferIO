@@ -4,12 +4,11 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
-    using Abstractions;
 
     /// <summary>
     ///     Interface for byte buffers.
     /// </summary>
-    public interface IBuffer : IBinaryWriter, IBinaryReader, IDisposable
+    public interface IBuffer : IDisposable
     {
         /// <summary>
         ///     Gets or sets the number of allocated internal buffer bytes.
