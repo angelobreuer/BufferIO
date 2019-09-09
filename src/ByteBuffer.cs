@@ -549,6 +549,13 @@
         }
 
         /// <summary>
+        ///     Reads a <see cref="sbyte"/> value from the buffer.
+        /// </summary>
+        /// <returns>the value read</returns>
+        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+        public sbyte ReadSByte() => (sbyte)ReadByte();
+
+        /// <summary>
         ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
         /// </summary>
         /// <param name="buffer">the buffer</param>
