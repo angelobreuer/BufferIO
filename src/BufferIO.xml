@@ -1,68 +1,68 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>ByteBuffer</name>
+        <name>BufferIO</name>
     </assembly>
     <members>
-        <member name="T:ByteBuffer.ByteBuffer">
+        <member name="T:BufferIO.ByteBuffer">
             <summary>
                 A class for a bi-directional (write and read), big-endian byte buffer which supports
                 buffer pooling and user-provided buffers.
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer.DefaultInitialCapacity">
+        <member name="F:BufferIO.ByteBuffer.DefaultInitialCapacity">
             <summary>
                 Gets the default initial capacity.
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer.MaximumStringByteSize">
+        <member name="F:BufferIO.ByteBuffer.MaximumStringByteSize">
             <summary>
                 The maximum encoded byte size of string.
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer._empty">
+        <member name="F:BufferIO.ByteBuffer._empty">
             <summary>
                 An empty byte buffer.
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer._origin">
+        <member name="F:BufferIO.ByteBuffer._origin">
             <summary>
                 The general buffer write offset (not the writing position).
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer._pool">
+        <member name="F:BufferIO.ByteBuffer._pool">
             <summary>
                 The array pool the buffer was rent from.
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer._buffer">
+        <member name="F:BufferIO.ByteBuffer._buffer">
             <summary>
                 The local buffer storing the data.
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer._capacity">
+        <member name="F:BufferIO.ByteBuffer._capacity">
             <summary>
                 The number of bytes allocated for the buffer.
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer._cursor">
+        <member name="F:BufferIO.ByteBuffer._cursor">
             <summary>
-                The current read / write position in the <see cref="F:ByteBuffer.ByteBuffer._buffer"/>.
+                The current read / write position in the <see cref="F:BufferIO.ByteBuffer._buffer"/>.
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer._disposed">
+        <member name="F:BufferIO.ByteBuffer._disposed">
             <summary>
                 A value indicating whether the buffer was disposed.
             </summary>
         </member>
-        <member name="F:ByteBuffer.ByteBuffer._length">
+        <member name="F:BufferIO.ByteBuffer._length">
             <summary>
                 The buffer length.
             </summary>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.#ctor(System.Byte[],System.Int32,System.Int32,System.Boolean,System.Boolean)">
+        <member name="M:BufferIO.ByteBuffer.#ctor(System.Byte[],System.Int32,System.Int32,System.Boolean,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:ByteBuffer.ByteBuffer"/> class.
+                Initializes a new instance of the <see cref="T:BufferIO.ByteBuffer"/> class.
             </summary>
             <param name="buffer">the buffer</param>
             <param name="offset">the buffer offset</param>
@@ -75,9 +75,9 @@
                 thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.#ctor(System.Byte[],System.Int32,System.Boolean,System.Boolean)">
+        <member name="M:BufferIO.ByteBuffer.#ctor(System.Byte[],System.Int32,System.Boolean,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:ByteBuffer.ByteBuffer"/> class.
+                Initializes a new instance of the <see cref="T:BufferIO.ByteBuffer"/> class.
             </summary>
             <param name="buffer">the buffer</param>
             <param name="count">the buffer byte count allocated for the buffer</param>
@@ -89,9 +89,9 @@
                 thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.#ctor(System.Byte[],System.Boolean,System.Boolean)">
+        <member name="M:BufferIO.ByteBuffer.#ctor(System.Byte[],System.Boolean,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:ByteBuffer.ByteBuffer"/> class.
+                Initializes a new instance of the <see cref="T:BufferIO.ByteBuffer"/> class.
             </summary>
             <param name="buffer">the buffer</param>
             <param name="writable">a value indicating whether the buffer should support writing</param>
@@ -102,9 +102,9 @@
                 thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.#ctor(System.ArraySegment{System.Byte},System.Boolean,System.Boolean)">
+        <member name="M:BufferIO.ByteBuffer.#ctor(System.ArraySegment{System.Byte},System.Boolean,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:ByteBuffer.ByteBuffer"/> class.
+                Initializes a new instance of the <see cref="T:BufferIO.ByteBuffer"/> class.
             </summary>
             <param name="buffer">the buffer</param>
             <param name="writable">a value indicating whether the buffer should support writing</param>
@@ -115,100 +115,100 @@
                 thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.#ctor(System.Buffers.ArrayPool{System.Byte},System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+        <member name="M:BufferIO.ByteBuffer.#ctor(System.Buffers.ArrayPool{System.Byte},System.Int32,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:ByteBuffer.ByteBuffer"/> class with a pooled buffer backend.
+                Initializes a new instance of the <see cref="T:BufferIO.ByteBuffer"/> class with a pooled buffer backend.
             </summary>
             <param name="arrayPool">
-                the byte array pool from which the <see cref="T:ByteBuffer.ByteBuffer"/> should be pooled from
+                the byte array pool from which the <see cref="T:BufferIO.ByteBuffer"/> should be pooled from
             </param>
             <param name="initialCapacity">the initial buffer capacity</param>
             <param name="expandable">a value indicating whether the buffer should be expandable</param>
             <param name="writable">a value indicating whether the buffer should support writing</param>
             <param name="exposable">
-                a value indicating whether the specified <see cref="T:ByteBuffer.ByteBuffer"/> should be exposable
+                a value indicating whether the specified <see cref="T:BufferIO.ByteBuffer"/> should be exposable
             </param>
             <exception cref="T:System.ArgumentOutOfRangeException">
                 thrown if the specified <paramref name="initialCapacity"/> is negative.
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.#ctor(System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+        <member name="M:BufferIO.ByteBuffer.#ctor(System.Int32,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:ByteBuffer.ByteBuffer"/> class with a pooled buffer backend.
+                Initializes a new instance of the <see cref="T:BufferIO.ByteBuffer"/> class with a pooled buffer backend.
             </summary>
             <param name="initialCapacity">the initial buffer capacity</param>
             <param name="expandable">a value indicating whether the buffer should be expandable</param>
             <param name="writable">a value indicating whether the buffer should support writing</param>
             <param name="exposable">
-                a value indicating whether the specified <see cref="T:ByteBuffer.ByteBuffer"/> should be exposable
+                a value indicating whether the specified <see cref="T:BufferIO.ByteBuffer"/> should be exposable
             </param>
             <exception cref="T:System.ArgumentOutOfRangeException">
                 thrown if the specified <paramref name="initialCapacity"/> is negative.
             </exception>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.DefaultBufferPool">
+        <member name="P:BufferIO.ByteBuffer.DefaultBufferPool">
             <summary>
-                Gets the default array pool for pooled <see cref="T:ByteBuffer.ByteBuffer"/> instances.
+                Gets the default array pool for pooled <see cref="T:BufferIO.ByteBuffer"/> instances.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.Capacity">
+        <member name="P:BufferIO.ByteBuffer.Capacity">
             <summary>
                 Gets or sets the number of allocated internal buffer bytes.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.Endianness">
+        <member name="P:BufferIO.ByteBuffer.Endianness">
             <summary>
                 Gets the buffer endianness.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.IsEmpty">
+        <member name="P:BufferIO.ByteBuffer.IsEmpty">
             <summary>
                 Gets a value indicating whether the buffer is empty.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.IsExpandable">
+        <member name="P:BufferIO.ByteBuffer.IsExpandable">
             <summary>
                 Gets a value indicating whether the buffer is expandable.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.IsExposable">
+        <member name="P:BufferIO.ByteBuffer.IsExposable">
             <summary>
                 Gets a value indicating whether the internal buffer is exposable.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.IsPooled">
+        <member name="P:BufferIO.ByteBuffer.IsPooled">
             <summary>
                 Gets a value indicating whether the buffer was pooled from an array pool.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.IsReadOnly">
+        <member name="P:BufferIO.ByteBuffer.IsReadOnly">
             <summary>
                 Gets a value indicating whether the buffer is read-only.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.Length">
+        <member name="P:BufferIO.ByteBuffer.Length">
             <summary>
                 Gets the current length of the buffer.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.Position">
+        <member name="P:BufferIO.ByteBuffer.Position">
             <summary>
                 Gets or sets the current buffer cursor position.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.Remaining">
+        <member name="P:BufferIO.ByteBuffer.Remaining">
             <summary>
                 Gets the amount of bytes remaining until the buffer is full.
             </summary>
         </member>
-        <member name="P:ByteBuffer.ByteBuffer.Item(System.Int32)">
+        <member name="P:BufferIO.ByteBuffer.Item(System.Int32)">
             <summary>
                 Gets or sets the <see cref="T:System.Byte"/> at the specified zero-based <paramref name="index"/>.
             </summary>
             <param name="index">the zero-based absolute <see cref="T:System.Byte"/> index</param>
             <returns>the <see cref="T:System.Byte"/> at the specified zero-based <paramref name="index"/></returns>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ValidateBuffer(System.Byte[],System.Int32,System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.ValidateBuffer(System.Byte[],System.Int32,System.Int32)">
             <summary>
                 Validates the specified buffer specification ( <paramref name="offset"/> and
                 <paramref name="count"/> in relation with the specified <paramref name="buffer"/>).
@@ -229,21 +229,21 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.AsMemoryStream">
+        <member name="M:BufferIO.ByteBuffer.AsMemoryStream">
             <summary>
                 Creates a memory stream from the buffer.
             </summary>
             <returns>the memory stream</returns>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Clear">
+        <member name="M:BufferIO.ByteBuffer.Clear">
             <summary>
                 Clears the buffer.
             </summary>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.CopyTo(System.IO.Stream,System.Boolean)">
+        <member name="M:BufferIO.ByteBuffer.CopyTo(System.IO.Stream,System.Boolean)">
             <summary>
                 Copies the internal buffer to the specified <paramref name="stream"/>.
             </summary>
@@ -257,7 +257,7 @@
                 thrown if the specified <paramref name="stream"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.CopyToAsync(System.IO.Stream,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:BufferIO.ByteBuffer.CopyToAsync(System.IO.Stream,System.Boolean,System.Threading.CancellationToken)">
             <summary>
                 Copies the internal buffer to the specified <paramref name="stream"/> asynchronously.
             </summary>
@@ -276,22 +276,22 @@
                 thrown if the specified <paramref name="stream"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Dispose">
+        <member name="M:BufferIO.ByteBuffer.Dispose">
             <summary>
-                Disposes the <see cref="T:ByteBuffer.ByteBuffer"/> instance and releases the buffer if it was rent
-                from an array pool ( <see cref="P:ByteBuffer.ByteBuffer.IsPooled"/>).
+                Disposes the <see cref="T:BufferIO.ByteBuffer"/> instance and releases the buffer if it was rent
+                from an array pool ( <see cref="P:BufferIO.ByteBuffer.IsPooled"/>).
             </summary>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.GetBuffer">
+        <member name="M:BufferIO.ByteBuffer.GetBuffer">
             <summary>
                 Gets the internal buffer.
             </summary>
             <returns>the internal buffer</returns>
             <exception cref="T:System.UnauthorizedAccessException">
-                thrown if the buffer is not exposable ( <see cref="P:ByteBuffer.ByteBuffer.IsExposable"/>).
+                thrown if the buffer is not exposable ( <see cref="P:BufferIO.ByteBuffer.IsExposable"/>).
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Read(System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.Read(System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence.
             </summary>
@@ -299,21 +299,21 @@
             <returns>the <see cref="T:System.Byte"/> sequence</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadBoolean">
+        <member name="M:BufferIO.ByteBuffer.ReadBoolean">
             <summary>
                 Reads a <see cref="T:System.Boolean"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadByte">
+        <member name="M:BufferIO.ByteBuffer.ReadByte">
             <summary>
                 Reads a <see cref="T:System.Byte"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadBytes(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.ReadBytes(System.Byte[],System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
@@ -321,21 +321,21 @@
             <param name="count">the number of bytes to read</param>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadBytes(System.Byte[])">
+        <member name="M:BufferIO.ByteBuffer.ReadBytes(System.Byte[])">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer</param>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadBytes(System.ArraySegment{System.Byte})">
+        <member name="M:BufferIO.ByteBuffer.ReadBytes(System.ArraySegment{System.Byte})">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer</param>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadBytes(System.Byte[],System.Int32,System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.ReadBytes(System.Byte[],System.Int32,System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
@@ -344,7 +344,7 @@
             <param name="count">the number of bytes to read</param>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadBytes(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.ReadBytes(System.Byte*,System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
@@ -353,125 +353,125 @@
             </param>
             <param name="count">the number of bytes to read</param>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadDouble">
+        <member name="M:BufferIO.ByteBuffer.ReadDouble">
             <summary>
                 Reads a <see cref="T:System.Double"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadFloat">
+        <member name="M:BufferIO.ByteBuffer.ReadFloat">
             <summary>
                 Reads a <see cref="T:System.Single"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadGuid">
+        <member name="M:BufferIO.ByteBuffer.ReadGuid">
             <summary>
                 Reads a <see cref="T:System.Guid"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadInt">
+        <member name="M:BufferIO.ByteBuffer.ReadInt">
             <summary>
                 Reads an <see cref="T:System.Int32"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadLong">
+        <member name="M:BufferIO.ByteBuffer.ReadLong">
             <summary>
                 Reads a <see cref="T:System.Int64"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadSByte">
+        <member name="M:BufferIO.ByteBuffer.ReadSByte">
             <summary>
                 Reads a <see cref="T:System.SByte"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadShort">
+        <member name="M:BufferIO.ByteBuffer.ReadShort">
             <summary>
                 Reads a <see cref="T:System.Int16"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadString">
+        <member name="M:BufferIO.ByteBuffer.ReadString">
             <summary>
                 Reads an UTF-8 encoded, length-prefixed <see cref="T:System.String"/>.
             </summary>
             <returns>the string read</returns>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadString(System.Text.Encoding)">
+        <member name="M:BufferIO.ByteBuffer.ReadString(System.Text.Encoding)">
             <summary>
                 Reads a length-prefixed <see cref="T:System.String"/> using the specified <paramref name="encoding"/>.
             </summary>
             <param name="encoding">the encoding to use</param>
             <returns>the string read</returns>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadUInt">
+        <member name="M:BufferIO.ByteBuffer.ReadUInt">
             <summary>
                 Reads an <see cref="T:System.UInt32"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadULong">
+        <member name="M:BufferIO.ByteBuffer.ReadULong">
             <summary>
                 Reads an <see cref="T:System.UInt64"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ReadUShort">
+        <member name="M:BufferIO.ByteBuffer.ReadUShort">
             <summary>
                 Reads an <see cref="T:System.UInt16"/> value from the buffer.
             </summary>
             <returns>the value read</returns>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Reset">
+        <member name="M:BufferIO.ByteBuffer.Reset">
             <summary>
                 Resets the cursor position.
             </summary>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.ToArray">
+        <member name="M:BufferIO.ByteBuffer.ToArray">
             <summary>
                 Creates an array of the buffer data.
             </summary>
             <returns>an array of the buffer data</returns>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Trim">
+        <member name="M:BufferIO.ByteBuffer.Trim">
             <summary>
                 Trims the internal buffer to the number of bytes used.
             </summary>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.TryGetBuffer(System.ArraySegment{System.Byte}@)">
+        <member name="M:BufferIO.ByteBuffer.TryGetBuffer(System.ArraySegment{System.Byte}@)">
             <summary>
                 Tries to get the internal buffer.
             </summary>
             <param name="buffer">the internal buffer</param>
             <returns>a value indicating whether the buffer could be get</returns>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Byte)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Byte)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Byte[],System.Int32)">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
@@ -484,13 +484,13 @@
                 thrown if the specified <paramref name="count"/> is negative.
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Byte[])">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Byte[])">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
@@ -499,25 +499,25 @@
                 thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.ArraySegment{System.Byte})">
+        <member name="M:BufferIO.ByteBuffer.Write(System.ArraySegment{System.Byte})">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
             <param name="buffer">the buffer</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Byte[],System.Int32,System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Byte[],System.Int32,System.Int32)">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
@@ -537,13 +537,13 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Byte*,System.Int32)">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the buffer.
             </summary>
@@ -553,145 +553,145 @@
             </param>
             <param name="count">the number of bytes to copy</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Int32)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.UInt32)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.UInt32)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.UInt16)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.UInt16)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Single)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Single)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Double)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Double)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Boolean)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Boolean)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Int16)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Int16)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.SByte)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.SByte)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Int64)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Int64)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.UInt64)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.UInt64)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.Guid)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.Guid)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.String,System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.String,System.Int32)">
             <summary>
                 Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="T:System.UInt16"/> length
                 prefix to the buffer.
@@ -700,13 +700,13 @@
             <param name="charCount">the number of characters</param>
             <returns>the number of total bytes written (including 2-byte length prefix)</returns>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.String)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.String)">
             <summary>
                 Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="T:System.UInt16"/> length
                 prefix to the buffer.
@@ -714,17 +714,17 @@
             <param name="value">the value to write</param>
             <returns>the number of total bytes written (including 2-byte length prefix)</returns>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
             <exception cref="T:System.ArgumentException">
                 thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.String,System.Int32,System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.String,System.Int32,System.Int32)">
             <summary>
                 Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="T:System.UInt16"/> length
                 prefix to the buffer.
@@ -734,17 +734,17 @@
             <param name="charCount">the number of characters</param>
             <returns>the number of total bytes written (including 2-byte length prefix)</returns>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
             <exception cref="T:System.ArgumentException">
                 thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.String,System.Int32,System.Text.Encoding)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.String,System.Int32,System.Text.Encoding)">
             <summary>
                 Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
                 2-byte <see cref="T:System.UInt16"/> length prefix to the buffer.
@@ -754,17 +754,17 @@
             <param name="encoding">the encoding to use</param>
             <returns>the number of total bytes written (including 2-byte length prefix)</returns>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
             <exception cref="T:System.ArgumentException">
                 thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.String,System.Text.Encoding)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.String,System.Text.Encoding)">
             <summary>
                 Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
                 2-byte <see cref="T:System.UInt16"/> length prefix to the buffer.
@@ -773,17 +773,17 @@
             <param name="encoding">the encoding to use</param>
             <returns>the number of total bytes written (including 2-byte length prefix)</returns>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
             <exception cref="T:System.ArgumentException">
                 thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.Write(System.String,System.Int32,System.Int32,System.Text.Encoding)">
+        <member name="M:BufferIO.ByteBuffer.Write(System.String,System.Int32,System.Int32,System.Text.Encoding)">
             <summary>
                 Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
                 2-byte <see cref="T:System.UInt16"/> length prefix to the buffer.
@@ -794,123 +794,123 @@
             <param name="encoding">the encoding to use</param>
             <returns>the number of total bytes written (including 2-byte length prefix)</returns>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
             <exception cref="T:System.ArgumentException">
                 thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.EnsureCapacity(System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.EnsureCapacity(System.Int32)">
             <summary>
                 Ensures that the buffer has the specified <paramref name="capacity"/>.
             </summary>
             <param name="capacity">the target buffer capacity</param>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.EnsureExpandable">
+        <member name="M:BufferIO.ByteBuffer.EnsureExpandable">
             <summary>
                 Ensures that the buffer is expandable.
             </summary>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is not expandable ( <see cref="P:ByteBuffer.ByteBuffer.IsExpandable"/>)
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.EnsureNotDisposed">
+        <member name="M:BufferIO.ByteBuffer.EnsureNotDisposed">
             <summary>
                 Ensures that the instance was not disposed.
             </summary>
             <exception cref="T:System.ObjectDisposedException">
-                thrown if the <see cref="T:ByteBuffer.ByteBuffer"/> instance is disposed.
+                thrown if the <see cref="T:BufferIO.ByteBuffer"/> instance is disposed.
             </exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.EnsureRemaining(System.Int32)">
+        <member name="M:BufferIO.ByteBuffer.EnsureRemaining(System.Int32)">
             <summary>
                 Ensures that a specific amount of bytes is remaining to read / write in the buffer.
             </summary>
             <param name="count">the number of bytes</param>
             <exception cref="T:System.InvalidOperationException">thrown if the buffer is too small.</exception>
         </member>
-        <member name="M:ByteBuffer.ByteBuffer.EnsureWritable">
+        <member name="M:BufferIO.ByteBuffer.EnsureWritable">
             <summary>
                 Ensures that the buffer is writable.
             </summary>
             <exception cref="T:System.InvalidOperationException">
-                thrown if the buffer is read-only ( <see cref="P:ByteBuffer.ByteBuffer.IsReadOnly"/>)
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
         </member>
-        <member name="T:ByteBuffer.IO.BinaryReader">
+        <member name="T:BufferIO.IO.BinaryReader">
             <summary>
                 Wrapper class for a big-endian binary reader that reads from an underlying stream.
             </summary>
         </member>
-        <member name="F:ByteBuffer.IO.BinaryReader._readBuffer">
+        <member name="F:BufferIO.IO.BinaryReader._readBuffer">
             <summary>
                 The internal read buffer.
             </summary>
-            <seealso cref="M:ByteBuffer.IO.BinaryReader.FillReadBuffer(System.Int32)"/>
+            <seealso cref="M:BufferIO.IO.BinaryReader.FillReadBuffer(System.Int32)"/>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.#ctor(System.IO.Stream,System.Boolean)">
+        <member name="M:BufferIO.IO.BinaryReader.#ctor(System.IO.Stream,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:ByteBuffer.IO.BinaryReader"/> class.
+                Initializes a new instance of the <see cref="T:BufferIO.IO.BinaryReader"/> class.
             </summary>
             <param name="baseStream">the base stream to write to / read from</param>
             <param name="leaveOpen">
                 a value indicating whether the specified <paramref name="baseStream"/> should be left
-                open when the <see cref="T:ByteBuffer.IO.BinaryReader"/> is closed.
+                open when the <see cref="T:BufferIO.IO.BinaryReader"/> is closed.
             </param>
         </member>
-        <member name="P:ByteBuffer.IO.BinaryReader.BaseStream">
+        <member name="P:BufferIO.IO.BinaryReader.BaseStream">
             <summary>
                 Gets the base stream to write to / read from.
             </summary>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.Dispose">
+        <member name="M:BufferIO.IO.BinaryReader.Dispose">
             <summary>
-                Disposes the <see cref="P:ByteBuffer.IO.BinaryReader.BaseStream"/> if specified in constructor (leaveOpen = <see langword="false"/>).
+                Disposes the <see cref="P:BufferIO.IO.BinaryReader.BaseStream"/> if specified in constructor (leaveOpen = <see langword="false"/>).
             </summary>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.Read(System.Int32)">
+        <member name="M:BufferIO.IO.BinaryReader.Read(System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence.
             </summary>
             <param name="count">the number of bytes to read</param>
             <returns>the <see cref="T:System.Byte"/> sequence</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadBoolean">
+        <member name="M:BufferIO.IO.BinaryReader.ReadBoolean">
             <summary>
                 Reads a <see cref="T:System.Boolean"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadByte">
+        <member name="M:BufferIO.IO.BinaryReader.ReadByte">
             <summary>
                 Reads a <see cref="T:System.Byte"/>.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadBytes(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.IO.BinaryReader.ReadBytes(System.Byte[],System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer</param>
             <param name="count">the number of bytes to read</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadBytes(System.Byte[])">
+        <member name="M:BufferIO.IO.BinaryReader.ReadBytes(System.Byte[])">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadBytes(System.ArraySegment{System.Byte})">
+        <member name="M:BufferIO.IO.BinaryReader.ReadBytes(System.ArraySegment{System.Byte})">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadBytes(System.Byte[],System.Int32,System.Int32)">
+        <member name="M:BufferIO.IO.BinaryReader.ReadBytes(System.Byte[],System.Int32,System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
@@ -918,134 +918,134 @@
             <param name="offset">the buffer write offset</param>
             <param name="count">the number of bytes to read</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadDouble">
+        <member name="M:BufferIO.IO.BinaryReader.ReadDouble">
             <summary>
                 Reads a <see cref="T:System.Double"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadFloat">
+        <member name="M:BufferIO.IO.BinaryReader.ReadFloat">
             <summary>
                 Reads a <see cref="T:System.Single"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadGuid">
+        <member name="M:BufferIO.IO.BinaryReader.ReadGuid">
             <summary>
                 Reads a <see cref="T:System.Guid"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadInt">
+        <member name="M:BufferIO.IO.BinaryReader.ReadInt">
             <summary>
                 Reads a <see cref="T:System.Int32"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadLong">
+        <member name="M:BufferIO.IO.BinaryReader.ReadLong">
             <summary>
                 Reads a <see cref="T:System.Int64"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadSByte">
+        <member name="M:BufferIO.IO.BinaryReader.ReadSByte">
             <summary>
                 Reads a <see cref="T:System.SByte"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadShort">
+        <member name="M:BufferIO.IO.BinaryReader.ReadShort">
             <summary>
                 Reads a <see cref="T:System.Int16"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadString">
+        <member name="M:BufferIO.IO.BinaryReader.ReadString">
             <summary>
                 Reads an UTF-8 encoded, length-prefixed <see cref="T:System.String"/>.
             </summary>
             <returns>the string read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadString(System.Text.Encoding)">
+        <member name="M:BufferIO.IO.BinaryReader.ReadString(System.Text.Encoding)">
             <summary>
                 Reads a length-prefixed <see cref="T:System.String"/> using the specified <paramref name="encoding"/>.
             </summary>
             <param name="encoding">the encoding to use</param>
             <returns>the string read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadUInt">
+        <member name="M:BufferIO.IO.BinaryReader.ReadUInt">
             <summary>
                 Reads a <see cref="T:System.UInt32"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadULong">
+        <member name="M:BufferIO.IO.BinaryReader.ReadULong">
             <summary>
                 Reads a <see cref="T:System.UInt64"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.ReadUShort">
+        <member name="M:BufferIO.IO.BinaryReader.ReadUShort">
             <summary>
                 Reads a <see cref="T:System.UInt16"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryReader.FillReadBuffer(System.Int32)">
+        <member name="M:BufferIO.IO.BinaryReader.FillReadBuffer(System.Int32)">
             <summary>
                 Fills the read buffer with the specified number of bytes ( <paramref name="count"/>).
             </summary>
             <param name="count">the number of bytes to fill the read buffer with</param>
         </member>
-        <member name="T:ByteBuffer.IO.BinaryWriter">
+        <member name="T:BufferIO.IO.BinaryWriter">
             <summary>
                 Wrapper class for a big-endian binary writer that writes to an underlying stream.
             </summary>
         </member>
-        <member name="F:ByteBuffer.IO.BinaryWriter.MaximumStringByteSize">
+        <member name="F:BufferIO.IO.BinaryWriter.MaximumStringByteSize">
             <summary>
                 The maximum encoded byte size of string.
             </summary>
         </member>
-        <member name="F:ByteBuffer.IO.BinaryWriter._writeBuffer">
+        <member name="F:BufferIO.IO.BinaryWriter._writeBuffer">
             <summary>
                 The internal write buffer.
             </summary>
-            <seealso cref="M:ByteBuffer.IO.BinaryWriter.FlushWriteBuffer(System.Int32)"/>
+            <seealso cref="M:BufferIO.IO.BinaryWriter.FlushWriteBuffer(System.Int32)"/>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.#ctor(System.IO.Stream,System.Boolean)">
+        <member name="M:BufferIO.IO.BinaryWriter.#ctor(System.IO.Stream,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:ByteBuffer.IO.BinaryWriter"/> class.
+                Initializes a new instance of the <see cref="T:BufferIO.IO.BinaryWriter"/> class.
             </summary>
             <param name="baseStream">the base stream to write to / read from</param>
             <param name="leaveOpen">
                 a value indicating whether the specified <paramref name="baseStream"/> should be left
-                open when the <see cref="T:ByteBuffer.IO.BinaryWriter"/> is closed.
+                open when the <see cref="T:BufferIO.IO.BinaryWriter"/> is closed.
             </param>
         </member>
-        <member name="P:ByteBuffer.IO.BinaryWriter.BaseStream">
+        <member name="P:BufferIO.IO.BinaryWriter.BaseStream">
             <summary>
                 Gets the base stream to write to / read from.
             </summary>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Dispose">
+        <member name="M:BufferIO.IO.BinaryWriter.Dispose">
             <summary>
-                Disposes the <see cref="P:ByteBuffer.IO.BinaryWriter.BaseStream"/> if specified in constructor (leaveOpen = <see langword="false"/>).
+                Disposes the <see cref="P:BufferIO.IO.BinaryWriter.BaseStream"/> if specified in constructor (leaveOpen = <see langword="false"/>).
             </summary>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Boolean)">
-            <summary>
-                Writes the specified <paramref name="value"/> to the buffer.
-            </summary>
-            <param name="value">the value to write</param>
-        </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Byte)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Boolean)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Byte[])">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Byte)">
+            <summary>
+                Writes the specified <paramref name="value"/> to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+        </member>
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Byte[])">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
@@ -1054,13 +1054,13 @@
                 thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.ArraySegment{System.Byte})">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.ArraySegment{System.Byte})">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
             <param name="buffer">the buffer</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Byte[],System.Int32,System.Int32)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Byte[],System.Int32,System.Int32)">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
@@ -1080,67 +1080,67 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
             </exception>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Int32)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Int32)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.UInt32)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.UInt32)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.UInt16)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.UInt16)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Single)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Single)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Double)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Double)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Int16)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Int16)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.SByte)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.SByte)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Int64)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Int64)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.UInt64)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.UInt64)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.Guid)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Guid)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.String,System.Int32)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Int32)">
             <summary>
                 Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="T:System.UInt16"/> length
                 prefix to the buffer.
@@ -1149,7 +1149,7 @@
             <param name="charCount">the number of characters</param>
             <returns>the number of total bytes written (including 2-byte length prefix)</returns>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.String)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String)">
             <summary>
                 Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="T:System.UInt16"/> length
                 prefix to the buffer.
@@ -1161,7 +1161,7 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.String,System.Int32,System.Int32)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Int32,System.Int32)">
             <summary>
                 Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="T:System.UInt16"/> length
                 prefix to the buffer.
@@ -1175,7 +1175,7 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.String,System.Int32,System.Text.Encoding)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Int32,System.Text.Encoding)">
             <summary>
                 Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
                 2-byte <see cref="T:System.UInt16"/> length prefix to the buffer.
@@ -1189,7 +1189,7 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.String,System.Text.Encoding)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Text.Encoding)">
             <summary>
                 Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
                 2-byte <see cref="T:System.UInt16"/> length prefix to the buffer.
@@ -1202,7 +1202,7 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.Write(System.String,System.Int32,System.Int32,System.Text.Encoding)">
+        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Int32,System.Int32,System.Text.Encoding)">
             <summary>
                 Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
                 2-byte <see cref="T:System.UInt16"/> length prefix to the buffer.
@@ -1217,81 +1217,81 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:ByteBuffer.IO.BinaryWriter.FlushWriteBuffer(System.Int32)">
+        <member name="M:BufferIO.IO.BinaryWriter.FlushWriteBuffer(System.Int32)">
             <summary>
                 Flushes the write buffer.
             </summary>
             <param name="count">the number of bytes to flush</param>
         </member>
-        <member name="T:ByteBuffer.Util.BigEndian">
+        <member name="T:BufferIO.Util.BigEndian">
             <summary>
                 An utility class used for the conversion between byte buffers and value types.
             </summary>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to a <see cref="T:System.Byte"/> array.
             </summary>
             <param name="value">the value to encode</param>
             <returns>the <see cref="T:System.Byte"/> array</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.UInt32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.UInt32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to a <see cref="T:System.Byte"/> array.
             </summary>
             <param name="value">the value to encode</param>
             <returns>the <see cref="T:System.Byte"/> array</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.UInt16)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.UInt16)">
             <summary>
                 Encodes the specified <paramref name="value"/> to a <see cref="T:System.Byte"/> array.
             </summary>
             <param name="value">the value to encode</param>
             <returns>the <see cref="T:System.Byte"/> array</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Int16)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Int16)">
             <summary>
                 Encodes the specified <paramref name="value"/> to a <see cref="T:System.Byte"/> array.
             </summary>
             <param name="value">the value to encode</param>
             <returns>the <see cref="T:System.Byte"/> array</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Int64)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Int64)">
             <summary>
                 Encodes the specified <paramref name="value"/> to a <see cref="T:System.Byte"/> array.
             </summary>
             <param name="value">the value to encode</param>
             <returns>the <see cref="T:System.Byte"/> array</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.UInt64)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.UInt64)">
             <summary>
                 Encodes the specified <paramref name="value"/> to a <see cref="T:System.Byte"/> array.
             </summary>
             <param name="value">the value to encode</param>
             <returns>the <see cref="T:System.Byte"/> array</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Decimal)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Decimal)">
             <summary>
                 Encodes the specified <paramref name="value"/> to a <see cref="T:System.Byte"/> array.
             </summary>
             <param name="value">the value to encode</param>
             <returns>the <see cref="T:System.Byte"/> array</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Double)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Double)">
             <summary>
                 Encodes the specified <paramref name="value"/> to a <see cref="T:System.Byte"/> array.
             </summary>
             <param name="value">the value to encode</param>
             <returns>the <see cref="T:System.Byte"/> array</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Single)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Single)">
             <summary>
                 Encodes the specified <paramref name="value"/> to a <see cref="T:System.Byte"/> array.
             </summary>
             <param name="value">the value to encode</param>
             <returns>the <see cref="T:System.Byte"/> array</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.Int32,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.Int32,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1310,7 +1310,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.UInt32,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.UInt32,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1329,7 +1329,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.Int16,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.Int16,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1348,7 +1348,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.UInt16,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.UInt16,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1367,7 +1367,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.Int64,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.Int64,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1386,7 +1386,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.UInt64,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.UInt64,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1405,7 +1405,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.SByte,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.SByte,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1424,7 +1424,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.Byte,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.Byte,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1443,7 +1443,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.Boolean,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.Boolean,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1462,7 +1462,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.Single,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.Single,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1481,7 +1481,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.Double,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.Double,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1500,7 +1500,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte[],System.Decimal,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte[],System.Decimal,System.Int32)">
             <summary>
                 Encodes the specified <paramref name="value"/> to the specified
                 <paramref name="buffer"/> at the specified zero-based <paramref name="byteOffset"/>.
@@ -1519,7 +1519,7 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the value.
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.Int32)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1531,7 +1531,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.UInt32)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.UInt32)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1543,7 +1543,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.Boolean)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.Boolean)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1555,7 +1555,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.Byte)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.Byte)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1567,7 +1567,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.SByte)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.SByte)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1579,7 +1579,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.Int16)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.Int16)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1591,7 +1591,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.UInt16)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.UInt16)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1603,7 +1603,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.Double)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.Double)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1615,7 +1615,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.Single)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.Single)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1627,7 +1627,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.Decimal)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.Decimal)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1639,7 +1639,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.Int64)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.Int64)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1651,7 +1651,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.GetBytes(System.Byte*,System.UInt64)">
+        <member name="M:BufferIO.Util.BigEndian.GetBytes(System.Byte*,System.UInt64)">
             <summary>
                 Copies the specified <paramref name="value"/> to the specified <paramref name="buffer"/>.
             </summary>
@@ -1663,7 +1663,7 @@
                 a pointer pointing to the memory address of the next free byte of the specified <paramref name="buffer"/>
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToDouble(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToDouble(System.Byte*,System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Double"/> value.
             </summary>
@@ -1671,7 +1671,7 @@
             <param name="offset">the zero-based buffer offset</param>
             <returns>the <see cref="T:System.Double"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToDouble(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToDouble(System.Byte[],System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Double"/> value.
             </summary>
@@ -1682,14 +1682,14 @@
                 thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToDouble(System.Byte*)">
+        <member name="M:BufferIO.Util.BigEndian.ToDouble(System.Byte*)">
             <summary>
                 Converts the specified <paramref name="buffer"/> to a <see cref="T:System.Int16"/> value.
             </summary>
             <param name="buffer">a pointer pointing to the memory address of the buffer</param>
             <returns>the <see cref="T:System.Double"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToFloat(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToFloat(System.Byte[],System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Single"/> value.
             </summary>
@@ -1700,7 +1700,7 @@
                 thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToFloat(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToFloat(System.Byte*,System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Single"/> value.
             </summary>
@@ -1708,14 +1708,14 @@
             <param name="offset">the zero-based buffer offset</param>
             <returns>the <see cref="T:System.Single"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToFloat(System.Byte*)">
+        <member name="M:BufferIO.Util.BigEndian.ToFloat(System.Byte*)">
             <summary>
                 Converts the specified <paramref name="buffer"/> to a <see cref="T:System.Single"/> value.
             </summary>
             <param name="buffer">a pointer pointing to the memory address of the buffer</param>
             <returns>the <see cref="T:System.Single"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToInt16(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToInt16(System.Byte[],System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Int16"/> value.
             </summary>
@@ -1726,7 +1726,7 @@
                 thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToInt16(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToInt16(System.Byte*,System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Int16"/> value.
             </summary>
@@ -1734,14 +1734,14 @@
             <param name="offset">the zero-based buffer offset</param>
             <returns>the <see cref="T:System.Int16"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToInt16(System.Byte*)">
+        <member name="M:BufferIO.Util.BigEndian.ToInt16(System.Byte*)">
             <summary>
                 Converts the specified <paramref name="buffer"/> to a <see cref="T:System.Int16"/> value.
             </summary>
             <param name="buffer">a pointer pointing to the memory address of the buffer</param>
             <returns>the <see cref="T:System.Int16"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToInt32(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToInt32(System.Byte[],System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Int32"/> value.
             </summary>
@@ -1752,7 +1752,7 @@
                 thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToInt32(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToInt32(System.Byte*,System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Int32"/> value.
             </summary>
@@ -1760,14 +1760,14 @@
             <param name="offset">the zero-based buffer offset</param>
             <returns>the <see cref="T:System.Int32"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToInt32(System.Byte*)">
+        <member name="M:BufferIO.Util.BigEndian.ToInt32(System.Byte*)">
             <summary>
                 Converts the specified <paramref name="buffer"/> to a <see cref="T:System.Int32"/> value.
             </summary>
             <param name="buffer">a pointer pointing to the memory address of the buffer</param>
             <returns>the <see cref="T:System.Int32"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToInt64(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToInt64(System.Byte[],System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Int64"/> value.
             </summary>
@@ -1778,7 +1778,7 @@
                 thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToInt64(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToInt64(System.Byte*,System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.Int64"/> value.
             </summary>
@@ -1786,14 +1786,14 @@
             <param name="offset">the zero-based buffer offset</param>
             <returns>the <see cref="T:System.Int64"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToInt64(System.Byte*)">
+        <member name="M:BufferIO.Util.BigEndian.ToInt64(System.Byte*)">
             <summary>
                 Converts the specified <paramref name="buffer"/> to a <see cref="T:System.Int64"/> value.
             </summary>
             <param name="buffer">a pointer pointing to the memory address of the buffer</param>
             <returns>the <see cref="T:System.Int64"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToUInt16(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToUInt16(System.Byte[],System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.UInt16"/> value.
             </summary>
@@ -1804,7 +1804,7 @@
                 thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToUInt16(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToUInt16(System.Byte*,System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.UInt16"/> value.
             </summary>
@@ -1812,14 +1812,14 @@
             <param name="offset">the zero-based buffer offset</param>
             <returns>the <see cref="T:System.UInt16"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToUInt16(System.Byte*)">
+        <member name="M:BufferIO.Util.BigEndian.ToUInt16(System.Byte*)">
             <summary>
                 Converts the specified <paramref name="buffer"/> to a <see cref="T:System.UInt16"/> value.
             </summary>
             <param name="buffer">a pointer pointing to the memory address of the buffer</param>
             <returns>the <see cref="T:System.UInt16"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToUInt32(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToUInt32(System.Byte[],System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.UInt32"/> value.
             </summary>
@@ -1830,7 +1830,7 @@
                 thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToUInt32(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToUInt32(System.Byte*,System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.UInt32"/> value.
             </summary>
@@ -1838,14 +1838,14 @@
             <param name="offset">the zero-based buffer offset</param>
             <returns>the <see cref="T:System.UInt32"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToUInt32(System.Byte*)">
+        <member name="M:BufferIO.Util.BigEndian.ToUInt32(System.Byte*)">
             <summary>
                 Converts the specified <paramref name="buffer"/> to a <see cref="T:System.UInt32"/> value.
             </summary>
             <param name="buffer">a pointer pointing to the memory address of the buffer</param>
             <returns>the <see cref="T:System.UInt32"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToUInt64(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToUInt64(System.Byte[],System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.UInt64"/> value.
             </summary>
@@ -1856,7 +1856,7 @@
                 thrown if the specified buffer is too small in relation with the specified byte <paramref name="offset"/>
             </exception>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToUInt64(System.Byte*,System.Int32)">
+        <member name="M:BufferIO.Util.BigEndian.ToUInt64(System.Byte*,System.Int32)">
             <summary>
                 Converts the <paramref name="buffer"/> to an <see cref="T:System.UInt64"/> value.
             </summary>
@@ -1864,24 +1864,24 @@
             <param name="offset">the zero-based buffer offset</param>
             <returns>the <see cref="T:System.UInt64"/> value</returns>
         </member>
-        <member name="M:ByteBuffer.Util.BigEndian.ToUInt64(System.Byte*)">
+        <member name="M:BufferIO.Util.BigEndian.ToUInt64(System.Byte*)">
             <summary>
                 Converts the specified <paramref name="buffer"/> to a <see cref="T:System.UInt64"/> value.
             </summary>
             <param name="buffer">a pointer pointing to the memory address of the buffer</param>
             <returns>the <see cref="T:System.UInt64"/> value</returns>
         </member>
-        <member name="T:ByteBuffer.Util.EndianConverter">
+        <member name="T:BufferIO.Util.EndianConverter">
             <summary>
                 An utility class that helps with swapping endianness.
             </summary>
         </member>
-        <member name="P:ByteBuffer.Util.EndianConverter.SystemEndianness">
+        <member name="P:BufferIO.Util.EndianConverter.SystemEndianness">
             <summary>
                 Gets the system-endianness.
             </summary>
         </member>
-        <member name="M:ByteBuffer.Util.EndianConverter.ShouldSwap(ByteBuffer.Util.Endianness,ByteBuffer.Util.Endianness)">
+        <member name="M:BufferIO.Util.EndianConverter.ShouldSwap(BufferIO.Util.Endianness,BufferIO.Util.Endianness)">
             <summary>
                 Determines whether a byte-swap is needed to preserve the specified byte-order ( <paramref name="endianness"/>).
             </summary>
@@ -1892,7 +1892,7 @@
                 ( <paramref name="endianness"/>)
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.EndianConverter.ShouldSwap(ByteBuffer.Util.Endianness)">
+        <member name="M:BufferIO.Util.EndianConverter.ShouldSwap(BufferIO.Util.Endianness)">
             <summary>
                 Determines whether a byte-swap is needed to preserve the specified byte-order ( <paramref name="endianness"/>).
             </summary>
@@ -1903,7 +1903,7 @@
                 ( <paramref name="endianness"/>)
             </returns>
         </member>
-        <member name="M:ByteBuffer.Util.EndianConverter.SwapEndianness(System.Byte[],System.Int32,System.Int32)">
+        <member name="M:BufferIO.Util.EndianConverter.SwapEndianness(System.Byte[],System.Int32,System.Int32)">
             <summary>
                 Swaps the endianness of the specified <paramref name="buffer"/>.
             </summary>
@@ -1911,31 +1911,31 @@
             <param name="offset">the buffer swap offset</param>
             <param name="count">the buffer swap count</param>
         </member>
-        <member name="M:ByteBuffer.Util.EndianConverter.SwapEndianness(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.Util.EndianConverter.SwapEndianness(System.Byte[],System.Int32)">
             <summary>
                 Swaps the endianness of the specified <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer to swap the bytes</param>
             <param name="count">the buffer swap count</param>
         </member>
-        <member name="M:ByteBuffer.Util.EndianConverter.SwapEndianness(System.Byte[])">
+        <member name="M:BufferIO.Util.EndianConverter.SwapEndianness(System.Byte[])">
             <summary>
                 Swaps the endianness of the whole <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer to swap the bytes</param>
         </member>
-        <member name="T:ByteBuffer.Util.Endianness">
+        <member name="T:BufferIO.Util.Endianness">
             <summary>
                 A set of the supported endianness (see: https://en.wikipedia.org/wiki/Endianness for more
                 details about Endianness).
             </summary>
         </member>
-        <member name="F:ByteBuffer.Util.Endianness.LittleEndian">
+        <member name="F:BufferIO.Util.Endianness.LittleEndian">
             <summary>
                 Denotes that the byte-order is little-endian.
             </summary>
         </member>
-        <member name="F:ByteBuffer.Util.Endianness.BigEndian">
+        <member name="F:BufferIO.Util.Endianness.BigEndian">
             <summary>
                 Denotes that the byte-order is big-endian.
             </summary>

@@ -1,4 +1,4 @@
-﻿namespace ByteBuffer.Tests
+﻿namespace BufferIO.Tests
 {
     using System;
     using System.Collections.Generic;

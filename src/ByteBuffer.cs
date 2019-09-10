@@ -1,4 +1,4 @@
-﻿namespace ByteBuffer
+﻿namespace BufferIO
 {
     using System;
     using System.Buffers;

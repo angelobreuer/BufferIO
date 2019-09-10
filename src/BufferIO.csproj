@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>ByteBuffer.xml</DocumentationFile>
+    <DocumentationFile>BufferIO.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
