@@ -276,6 +276,24 @@
                 thrown if the specified <paramref name="stream"/> is <see langword="null"/>.
             </exception>
         </member>
+        <member name="M:BufferIO.ByteBuffer.CreateReader">
+            <summary>
+                Creates a <see cref="T:BufferIO.IO.BigEndianReader"/> that reads from the buffer.
+            </summary>
+            <returns>the <see cref="T:BufferIO.IO.BigEndianReader"/> instance</returns>
+        </member>
+        <member name="M:BufferIO.ByteBuffer.CreateStream">
+            <summary>
+                Creates a <see cref="T:System.IO.Stream"/> that can write to / read from the buffer.
+            </summary>
+            <returns>the <see cref="T:System.IO.Stream"/> instance</returns>
+        </member>
+        <member name="M:BufferIO.ByteBuffer.CreateWriter">
+            <summary>
+                Creates a <see cref="T:BufferIO.IO.BigEndianWriter"/> that writes to the buffer.
+            </summary>
+            <returns>the <see cref="T:BufferIO.IO.BigEndianWriter"/> instance</returns>
+        </member>
         <member name="M:BufferIO.ByteBuffer.Dispose">
             <summary>
                 Disposes the <see cref="T:BufferIO.ByteBuffer"/> instance and releases the buffer if it was rent
@@ -841,76 +859,76 @@
                 thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
             </exception>
         </member>
-        <member name="T:BufferIO.IO.BinaryReader">
+        <member name="T:BufferIO.IO.BigEndianReader">
             <summary>
                 Wrapper class for a big-endian binary reader that reads from an underlying stream.
             </summary>
         </member>
-        <member name="F:BufferIO.IO.BinaryReader._readBuffer">
+        <member name="F:BufferIO.IO.BigEndianReader._readBuffer">
             <summary>
                 The internal read buffer.
             </summary>
-            <seealso cref="M:BufferIO.IO.BinaryReader.FillReadBuffer(System.Int32)"/>
+            <seealso cref="M:BufferIO.IO.BigEndianReader.FillReadBuffer(System.Int32)"/>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.#ctor(System.IO.Stream,System.Boolean)">
+        <member name="M:BufferIO.IO.BigEndianReader.#ctor(System.IO.Stream,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:BufferIO.IO.BinaryReader"/> class.
+                Initializes a new instance of the <see cref="T:BufferIO.IO.BigEndianReader"/> class.
             </summary>
             <param name="baseStream">the base stream to write to / read from</param>
             <param name="leaveOpen">
                 a value indicating whether the specified <paramref name="baseStream"/> should be left
-                open when the <see cref="T:BufferIO.IO.BinaryReader"/> is closed.
+                open when the <see cref="T:BufferIO.IO.BigEndianReader"/> is closed.
             </param>
         </member>
-        <member name="P:BufferIO.IO.BinaryReader.BaseStream">
+        <member name="P:BufferIO.IO.BigEndianReader.BaseStream">
             <summary>
                 Gets the base stream to write to / read from.
             </summary>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.Dispose">
+        <member name="M:BufferIO.IO.BigEndianReader.Dispose">
             <summary>
-                Disposes the <see cref="P:BufferIO.IO.BinaryReader.BaseStream"/> if specified in constructor (leaveOpen = <see langword="false"/>).
+                Disposes the <see cref="P:BufferIO.IO.BigEndianReader.BaseStream"/> if specified in constructor (leaveOpen = <see langword="false"/>).
             </summary>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.Read(System.Int32)">
+        <member name="M:BufferIO.IO.BigEndianReader.Read(System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence.
             </summary>
             <param name="count">the number of bytes to read</param>
             <returns>the <see cref="T:System.Byte"/> sequence</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadBoolean">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadBoolean">
             <summary>
                 Reads a <see cref="T:System.Boolean"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadByte">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadByte">
             <summary>
                 Reads a <see cref="T:System.Byte"/>.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadBytes(System.Byte[],System.Int32)">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadBytes(System.Byte[],System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer</param>
             <param name="count">the number of bytes to read</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadBytes(System.Byte[])">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadBytes(System.Byte[])">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadBytes(System.ArraySegment{System.Byte})">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadBytes(System.ArraySegment{System.Byte})">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
             <param name="buffer">the buffer</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadBytes(System.Byte[],System.Int32,System.Int32)">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadBytes(System.Byte[],System.Int32,System.Int32)">
             <summary>
                 Reads a <see cref="T:System.Byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
             </summary>
@@ -918,134 +936,134 @@
             <param name="offset">the buffer write offset</param>
             <param name="count">the number of bytes to read</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadDouble">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadDouble">
             <summary>
                 Reads a <see cref="T:System.Double"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadFloat">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadFloat">
             <summary>
                 Reads a <see cref="T:System.Single"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadGuid">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadGuid">
             <summary>
                 Reads a <see cref="T:System.Guid"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadInt">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadInt">
             <summary>
                 Reads a <see cref="T:System.Int32"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadLong">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadLong">
             <summary>
                 Reads a <see cref="T:System.Int64"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadSByte">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadSByte">
             <summary>
                 Reads a <see cref="T:System.SByte"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadShort">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadShort">
             <summary>
                 Reads a <see cref="T:System.Int16"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadString">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadString">
             <summary>
                 Reads an UTF-8 encoded, length-prefixed <see cref="T:System.String"/>.
             </summary>
             <returns>the string read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadString(System.Text.Encoding)">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadString(System.Text.Encoding)">
             <summary>
                 Reads a length-prefixed <see cref="T:System.String"/> using the specified <paramref name="encoding"/>.
             </summary>
             <param name="encoding">the encoding to use</param>
             <returns>the string read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadUInt">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadUInt">
             <summary>
                 Reads a <see cref="T:System.UInt32"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadULong">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadULong">
             <summary>
                 Reads a <see cref="T:System.UInt64"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.ReadUShort">
+        <member name="M:BufferIO.IO.BigEndianReader.ReadUShort">
             <summary>
                 Reads a <see cref="T:System.UInt16"/> value.
             </summary>
             <returns>the value read</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryReader.FillReadBuffer(System.Int32)">
+        <member name="M:BufferIO.IO.BigEndianReader.FillReadBuffer(System.Int32)">
             <summary>
                 Fills the read buffer with the specified number of bytes ( <paramref name="count"/>).
             </summary>
             <param name="count">the number of bytes to fill the read buffer with</param>
         </member>
-        <member name="T:BufferIO.IO.BinaryWriter">
+        <member name="T:BufferIO.IO.BigEndianWriter">
             <summary>
                 Wrapper class for a big-endian binary writer that writes to an underlying stream.
             </summary>
         </member>
-        <member name="F:BufferIO.IO.BinaryWriter.MaximumStringByteSize">
+        <member name="F:BufferIO.IO.BigEndianWriter.MaximumStringByteSize">
             <summary>
                 The maximum encoded byte size of string.
             </summary>
         </member>
-        <member name="F:BufferIO.IO.BinaryWriter._writeBuffer">
+        <member name="F:BufferIO.IO.BigEndianWriter._writeBuffer">
             <summary>
                 The internal write buffer.
             </summary>
-            <seealso cref="M:BufferIO.IO.BinaryWriter.FlushWriteBuffer(System.Int32)"/>
+            <seealso cref="M:BufferIO.IO.BigEndianWriter.FlushWriteBuffer(System.Int32)"/>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.#ctor(System.IO.Stream,System.Boolean)">
+        <member name="M:BufferIO.IO.BigEndianWriter.#ctor(System.IO.Stream,System.Boolean)">
             <summary>
-                Initializes a new instance of the <see cref="T:BufferIO.IO.BinaryWriter"/> class.
+                Initializes a new instance of the <see cref="T:BufferIO.IO.BigEndianWriter"/> class.
             </summary>
             <param name="baseStream">the base stream to write to / read from</param>
             <param name="leaveOpen">
                 a value indicating whether the specified <paramref name="baseStream"/> should be left
-                open when the <see cref="T:BufferIO.IO.BinaryWriter"/> is closed.
+                open when the <see cref="T:BufferIO.IO.BigEndianWriter"/> is closed.
             </param>
         </member>
-        <member name="P:BufferIO.IO.BinaryWriter.BaseStream">
+        <member name="P:BufferIO.IO.BigEndianWriter.BaseStream">
             <summary>
                 Gets the base stream to write to / read from.
             </summary>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Dispose">
+        <member name="M:BufferIO.IO.BigEndianWriter.Dispose">
             <summary>
-                Disposes the <see cref="P:BufferIO.IO.BinaryWriter.BaseStream"/> if specified in constructor (leaveOpen = <see langword="false"/>).
+                Disposes the <see cref="P:BufferIO.IO.BigEndianWriter.BaseStream"/> if specified in constructor (leaveOpen = <see langword="false"/>).
             </summary>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Boolean)">
-            <summary>
-                Writes the specified <paramref name="value"/> to the buffer.
-            </summary>
-            <param name="value">the value to write</param>
-        </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Byte)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Boolean)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Byte[])">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Byte)">
+            <summary>
+                Writes the specified <paramref name="value"/> to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+        </member>
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Byte[])">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
@@ -1054,13 +1072,13 @@
                 thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
             </exception>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.ArraySegment{System.Byte})">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.ArraySegment{System.Byte})">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
             <param name="buffer">the buffer</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Byte[],System.Int32,System.Int32)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Byte[],System.Int32,System.Int32)">
             <summary>
                 Writes the specified <paramref name="buffer"/> to the internal buffer.
             </summary>
@@ -1080,67 +1098,67 @@
                 thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
             </exception>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Int32)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Int32)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.UInt32)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.UInt32)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.UInt16)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.UInt16)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Single)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Single)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Double)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Double)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Int16)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Int16)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.SByte)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.SByte)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Int64)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Int64)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.UInt64)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.UInt64)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.Guid)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.Guid)">
             <summary>
                 Writes the specified <paramref name="value"/> to the buffer.
             </summary>
             <param name="value">the value to write</param>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Int32)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.String,System.Int32)">
             <summary>
                 Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="T:System.UInt16"/> length
                 prefix to the buffer.
@@ -1149,7 +1167,7 @@
             <param name="charCount">the number of characters</param>
             <returns>the number of total bytes written (including 2-byte length prefix)</returns>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.String)">
             <summary>
                 Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="T:System.UInt16"/> length
                 prefix to the buffer.
@@ -1161,7 +1179,7 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Int32,System.Int32)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.String,System.Int32,System.Int32)">
             <summary>
                 Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="T:System.UInt16"/> length
                 prefix to the buffer.
@@ -1175,7 +1193,7 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Int32,System.Text.Encoding)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.String,System.Int32,System.Text.Encoding)">
             <summary>
                 Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
                 2-byte <see cref="T:System.UInt16"/> length prefix to the buffer.
@@ -1189,7 +1207,7 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Text.Encoding)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.String,System.Text.Encoding)">
             <summary>
                 Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
                 2-byte <see cref="T:System.UInt16"/> length prefix to the buffer.
@@ -1202,7 +1220,7 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.Write(System.String,System.Int32,System.Int32,System.Text.Encoding)">
+        <member name="M:BufferIO.IO.BigEndianWriter.Write(System.String,System.Int32,System.Int32,System.Text.Encoding)">
             <summary>
                 Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
                 2-byte <see cref="T:System.UInt16"/> length prefix to the buffer.
@@ -1217,11 +1235,88 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
-        <member name="M:BufferIO.IO.BinaryWriter.FlushWriteBuffer(System.Int32)">
+        <member name="M:BufferIO.IO.BigEndianWriter.FlushWriteBuffer(System.Int32)">
             <summary>
                 Flushes the write buffer.
             </summary>
             <param name="count">the number of bytes to flush</param>
+        </member>
+        <member name="T:BufferIO.IO.ByteBufferStream">
+            <summary>
+                The <see cref="T:System.IO.Stream"/> wrapper for writing to / reading from a <see cref="T:BufferIO.ByteBuffer"/>.
+            </summary>
+        </member>
+        <member name="M:BufferIO.IO.ByteBufferStream.#ctor(BufferIO.ByteBuffer)">
+            <summary>
+                Initializes a new instance of the <see cref="T:BufferIO.IO.ByteBufferStream"/> class.
+            </summary>
+            <param name="buffer"></param>
+        </member>
+        <member name="P:BufferIO.IO.ByteBufferStream.Buffer">
+            <summary>
+                Gets the underlying buffer.
+            </summary>
+        </member>
+        <member name="P:BufferIO.IO.ByteBufferStream.CanRead">
+            <summary>
+                Gets a value indicating whether the stream supports reading.
+            </summary>
+        </member>
+        <member name="P:BufferIO.IO.ByteBufferStream.CanSeek">
+            <summary>
+                Gets a value indicating whether the stream supports seeking.
+            </summary>
+        </member>
+        <member name="P:BufferIO.IO.ByteBufferStream.CanWrite">
+            <summary>
+                Gets a value indicating whether the stream supports writing.
+            </summary>
+        </member>
+        <member name="P:BufferIO.IO.ByteBufferStream.Length">
+            <summary>
+                Gets the current length of the underlying buffer.
+            </summary>
+        </member>
+        <member name="P:BufferIO.IO.ByteBufferStream.Position">
+            <summary>
+                Gets or sets the writing / reading position of the underlying buffer.
+            </summary>
+        </member>
+        <member name="M:BufferIO.IO.ByteBufferStream.Flush">
+            <summary>
+                Flushes the stream.
+            </summary>
+        </member>
+        <member name="M:BufferIO.IO.ByteBufferStream.Read(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+                Reads data from the underlying <see cref="P:BufferIO.IO.ByteBufferStream.Buffer"/>.
+            </summary>
+            <param name="buffer">the buffer</param>
+            <param name="offset">the offset</param>
+            <param name="count">the number of bytes to read</param>
+            <returns>the number of bytes read</returns>
+        </member>
+        <member name="M:BufferIO.IO.ByteBufferStream.Seek(System.Int64,System.IO.SeekOrigin)">
+            <summary>
+                Seeks a position in the stream.
+            </summary>
+            <param name="offset">the seek offset</param>
+            <param name="origin">the seek origin</param>
+            <returns>the new position in the stream</returns>
+        </member>
+        <member name="M:BufferIO.IO.ByteBufferStream.SetLength(System.Int64)">
+            <summary>
+                Sets the stream length to the specified <paramref name="value"/>.
+            </summary>
+            <param name="value">the target stream length</param>
+        </member>
+        <member name="M:BufferIO.IO.ByteBufferStream.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+                Writes the specified <paramref name="buffer"/> to the underlying <see cref="P:BufferIO.IO.ByteBufferStream.Buffer"/>.
+            </summary>
+            <param name="buffer">the buffer to read from</param>
+            <param name="offset">the offset</param>
+            <param name="count">the number of bytes to write</param>
         </member>
         <member name="T:BufferIO.Util.BigEndian">
             <summary>
