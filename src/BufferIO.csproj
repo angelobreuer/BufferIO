@@ -3,6 +3,17 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.1</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>Angelo Breuer</Authors>
+    <Company>Angelo Breuer</Company>
+    <Description>BufferIO is an extensible big-endian oriented byte buffer with pooling support and additional binary read and write streams.</Description>
+    <Copyright>Angelo Breuer 2019</Copyright>
+    <PackageProjectUrl>https://github.com/angelobreuer/BufferIO</PackageProjectUrl>
+    <PackageIconUrl></PackageIconUrl>
+    <RepositoryUrl>https://github.com/angelobreuer/BufferIO</RepositoryUrl>
+    <PackageTags>bufferio,bigendian,big endian,input output,io,buffer,binary,stream</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
