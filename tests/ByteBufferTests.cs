@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text;
@@ -95,6 +96,61 @@
             Assert.Empty(Buffer.ToArray());
             Assert.True(Buffer.IsEmpty);
             Assert.Equal(0, Buffer.Length);
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateRandomData), 8)]
+        public void TestCreateReader(byte[] buffer)
+        {
+            // write test data
+            Buffer.Write(buffer);
+            Buffer.Reset();
+
+            // create reader
+            using (var reader = Buffer.CreateReader())
+            {
+                // read and verify the data
+                var data = reader.Read(buffer.Length);
+                Assert.Equal(buffer, data);
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateRandomData), 8)]
+        public void TestCreateStream(byte[] buffer)
+        {
+            using (var stream = Buffer.CreateStream())
+            {
+                // write test data
+                stream.Write(buffer);
+
+                // reset position to beginning
+                stream.Seek(0, SeekOrigin.Begin);
+
+                // read and verify test data
+                var data = new byte[buffer.Length];
+                Assert.Equal(data.Length, stream.Read(data, 0, data.Length));
+                Assert.Equal(buffer, data);
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GenerateRandomData), 8)]
+        public void TestCreateWriter(byte[] buffer)
+        {
+            // create writer
+            using (var writer = Buffer.CreateWriter())
+            {
+                // write the data
+                writer.Write(buffer);
+            }
+
+            // reset cursor
+            Buffer.Reset();
+
+            // read and verify the data
+            var data = Buffer.Read(buffer.Length);
+            Assert.Equal(buffer, data);
         }
 
         /// <summary>
