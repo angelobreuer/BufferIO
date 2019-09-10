@@ -9,7 +9,7 @@
     /// <summary>
     ///     Wrapper class for a big-endian binary writer that writes to an underlying stream.
     /// </summary>
-    public class BinaryWriter : IDisposable
+    public class BigEndianWriter : IDisposable
     {
         /// <summary>
         ///     The maximum encoded byte size of string.
@@ -25,14 +25,14 @@
         private readonly bool _leaveOpen;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="BinaryWriter"/> class.
+        ///     Initializes a new instance of the <see cref="BigEndianWriter"/> class.
         /// </summary>
         /// <param name="baseStream">the base stream to write to / read from</param>
         /// <param name="leaveOpen">
         ///     a value indicating whether the specified <paramref name="baseStream"/> should be left
-        ///     open when the <see cref="BinaryWriter"/> is closed.
+        ///     open when the <see cref="BigEndianWriter"/> is closed.
         /// </param>
-        public BinaryWriter(Stream baseStream, bool leaveOpen = false)
+        public BigEndianWriter(Stream baseStream, bool leaveOpen = false)
         {
             BaseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
             _leaveOpen = leaveOpen;

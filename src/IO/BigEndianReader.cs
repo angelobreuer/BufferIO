@@ -9,7 +9,7 @@
     /// <summary>
     ///     Wrapper class for a big-endian binary reader that reads from an underlying stream.
     /// </summary>
-    public class BinaryReader : IDisposable
+    public class BigEndianReader : IDisposable
     {
         /// <summary>
         ///     The internal read buffer.
@@ -20,14 +20,14 @@
         private readonly bool _leaveOpen;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="BinaryReader"/> class.
+        ///     Initializes a new instance of the <see cref="BigEndianReader"/> class.
         /// </summary>
         /// <param name="baseStream">the base stream to write to / read from</param>
         /// <param name="leaveOpen">
         ///     a value indicating whether the specified <paramref name="baseStream"/> should be left
-        ///     open when the <see cref="BinaryReader"/> is closed.
+        ///     open when the <see cref="BigEndianReader"/> is closed.
         /// </param>
-        public BinaryReader(Stream baseStream, bool leaveOpen = false)
+        public BigEndianReader(Stream baseStream, bool leaveOpen = false)
         {
             BaseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
             _leaveOpen = leaveOpen;

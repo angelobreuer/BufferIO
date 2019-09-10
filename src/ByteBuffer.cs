@@ -10,9 +10,6 @@
     using BufferIO.IO;
     using BufferIO.Util;
 
-    using BinaryWriter = IO.BinaryWriter;
-    using BinaryReader = IO.BinaryReader;
-
     /// <summary>
     ///     A class for a bi-directional (write and read), big-endian byte buffer which supports
     ///     buffer pooling and user-provided buffers.
@@ -494,11 +491,11 @@
         }
 
         /// <summary>
-        ///     Creates a <see cref="BinaryReader"/> that reads from the buffer.
+        ///     Creates a <see cref="BigEndianReader"/> that reads from the buffer.
         /// </summary>
-        /// <returns>the <see cref="BinaryReader"/> instance</returns>
-        public BinaryReader CreateReader()
-            => new BinaryReader(CreateStream());
+        /// <returns>the <see cref="BigEndianReader"/> instance</returns>
+        public BigEndianReader CreateReader()
+            => new BigEndianReader(CreateStream());
 
         /// <summary>
         ///     Creates a <see cref="Stream"/> that can write to / read from the buffer.
@@ -508,11 +505,11 @@
             => new ByteBufferStream(this);
 
         /// <summary>
-        ///     Creates a <see cref="BinaryWriter"/> that writes to the buffer.
+        ///     Creates a <see cref="BigEndianWriter"/> that writes to the buffer.
         /// </summary>
-        /// <returns>the <see cref="BinaryWriter"/> instance</returns>
-        public BinaryWriter CreateWriter()
-            => new BinaryWriter(CreateStream());
+        /// <returns>the <see cref="BigEndianWriter"/> instance</returns>
+        public BigEndianWriter CreateWriter()
+            => new BigEndianWriter(CreateStream());
 
         /// <summary>
         ///     Disposes the <see cref="ByteBuffer"/> instance and releases the buffer if it was rent
