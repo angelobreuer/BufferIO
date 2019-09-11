@@ -433,6 +433,21 @@
             <param name="encoding">the encoding to use</param>
             <returns>the string read</returns>
         </member>
+        <member name="M:BufferIO.ByteBuffer.ReadUnprefixedString(System.Int32)">
+            <summary>
+                Reads an UTF-8 encoded <see cref="T:System.String"/>.
+            </summary>
+            <param name="encodedLength">the encoded length of the string</param>
+            <returns>the string read</returns>
+        </member>
+        <member name="M:BufferIO.ByteBuffer.ReadUnprefixedString(System.Int32,System.Text.Encoding)">
+            <summary>
+                Reads a <see cref="T:System.String"/> using the specified <paramref name="encoding"/>.
+            </summary>
+            <param name="encodedLength">the encoded length of the string</param>
+            <param name="encoding">the encoding to use</param>
+            <returns>the string read</returns>
+        </member>
         <member name="M:BufferIO.ByteBuffer.ReadUInt">
             <summary>
                 Reads an <see cref="T:System.UInt32"/> value from the buffer.
@@ -822,6 +837,93 @@
                 length ( <c>0xFFFF</c>)
             </exception>
         </member>
+        <member name="M:BufferIO.ByteBuffer.WriteUnprefixed(System.String,System.Int32)">
+            <summary>
+                Writes a string encoded in UTF-8 to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="charCount">the number of characters</param>
+            <returns>the number of total bytes written</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
+            </exception>
+        </member>
+        <member name="M:BufferIO.ByteBuffer.WriteUnprefixed(System.String)">
+            <summary>
+                Writes a string encoded in UTF-8 prefixed to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <returns>the number of total bytes written</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
+            </exception>
+        </member>
+        <member name="M:BufferIO.ByteBuffer.WriteUnprefixed(System.String,System.Int32,System.Int32)">
+            <summary>
+                Writes a string encoded in UTF-8 prefixed to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="charIndex">the character index</param>
+            <param name="charCount">the number of characters</param>
+            <returns>the number of total bytes written</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
+            </exception>
+        </member>
+        <member name="M:BufferIO.ByteBuffer.WriteUnprefixed(System.String,System.Int32,System.Text.Encoding)">
+            <summary>
+                Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="charCount">the number of characters</param>
+            <param name="encoding">the encoding to use</param>
+            <returns>the number of total bytes written</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
+            </exception>
+        </member>
+        <member name="M:BufferIO.ByteBuffer.WriteUnprefixed(System.String,System.Text.Encoding)">
+            <summary>
+                Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="encoding">the encoding to use</param>
+            <returns>the number of total bytes written</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
+            </exception>
+        </member>
+        <member name="M:BufferIO.ByteBuffer.WriteUnprefixed(System.String,System.Int32,System.Int32,System.Text.Encoding)">
+            <summary>
+                Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="charIndex">the character index</param>
+            <param name="charCount">the number of characters</param>
+            <param name="encoding">the encoding to use</param>
+            <returns>the number of total bytes written</returns>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is read-only ( <see cref="P:BufferIO.ByteBuffer.IsReadOnly"/>)
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+                thrown if the buffer is not expandable ( <see cref="P:BufferIO.ByteBuffer.IsExpandable"/>)
+            </exception>
+        </member>
         <member name="M:BufferIO.ByteBuffer.EnsureCapacity(System.Int32)">
             <summary>
                 Ensures that the buffer has the specified <paramref name="capacity"/>.
@@ -1002,6 +1104,21 @@
                 Reads a <see cref="T:System.UInt64"/> value.
             </summary>
             <returns>the value read</returns>
+        </member>
+        <member name="M:BufferIO.IO.BigEndianReader.ReadUnprefixedString(System.Int32)">
+            <summary>
+                Reads an UTF-8 encoded <see cref="T:System.String"/>.
+            </summary>
+            <param name="encodedLength">the encoded length of the string</param>
+            <returns>the string read</returns>
+        </member>
+        <member name="M:BufferIO.IO.BigEndianReader.ReadUnprefixedString(System.Int32,System.Text.Encoding)">
+            <summary>
+                Reads a <see cref="T:System.String"/> using the specified <paramref name="encoding"/>.
+            </summary>
+            <param name="encodedLength">the encoded length of the string</param>
+            <param name="encoding">the encoding to use</param>
+            <returns>the string read</returns>
         </member>
         <member name="M:BufferIO.IO.BigEndianReader.ReadUShort">
             <summary>
@@ -1234,6 +1351,57 @@
                 thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
                 length ( <c>0xFFFF</c>)
             </exception>
+        </member>
+        <member name="M:BufferIO.IO.BigEndianWriter.WriteUnprefixed(System.String,System.Int32)">
+            <summary>
+                Writes a string encoded in UTF-8 to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="charCount">the number of characters</param>
+            <returns>the number of total bytes written</returns>
+        </member>
+        <member name="M:BufferIO.IO.BigEndianWriter.WriteUnprefixed(System.String)">
+            <summary>
+                Writes a string encoded in UTF-8 prefixed to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <returns>the number of total bytes written</returns>
+        </member>
+        <member name="M:BufferIO.IO.BigEndianWriter.WriteUnprefixed(System.String,System.Int32,System.Int32)">
+            <summary>
+                Writes a string encoded in UTF-8 prefixed to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="charIndex">the character index</param>
+            <param name="charCount">the number of characters</param>
+            <returns>the number of total bytes written</returns>
+        </member>
+        <member name="M:BufferIO.IO.BigEndianWriter.WriteUnprefixed(System.String,System.Int32,System.Text.Encoding)">
+            <summary>
+                Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="charCount">the number of characters</param>
+            <param name="encoding">the encoding to use</param>
+            <returns>the number of total bytes written</returns>
+        </member>
+        <member name="M:BufferIO.IO.BigEndianWriter.WriteUnprefixed(System.String,System.Text.Encoding)">
+            <summary>
+                Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="encoding">the encoding to use</param>
+            <returns>the number of total bytes written</returns>
+        </member>
+        <member name="M:BufferIO.IO.BigEndianWriter.WriteUnprefixed(System.String,System.Int32,System.Int32,System.Text.Encoding)">
+            <summary>
+                Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+            </summary>
+            <param name="value">the value to write</param>
+            <param name="charIndex">the character index</param>
+            <param name="charCount">the number of characters</param>
+            <param name="encoding">the encoding to use</param>
+            <returns>the number of total bytes written</returns>
         </member>
         <member name="M:BufferIO.IO.BigEndianWriter.FlushWriteBuffer(System.Int32)">
             <summary>
