@@ -740,6 +740,41 @@
         }
 
         /// <summary>
+        ///     Reads an UTF-8 encoded <see cref="string"/>.
+        /// </summary>
+        /// <param name="encodedLength">the encoded length of the string</param>
+        /// <returns>the string read</returns>
+        public string ReadUnprefixedString(int encodedLength)
+            => ReadUnprefixedString(encodedLength, Encoding.UTF8);
+
+        /// <summary>
+        ///     Reads a <see cref="string"/> using the specified <paramref name="encoding"/>.
+        /// </summary>
+        /// <param name="encodedLength">the encoded length of the string</param>
+        /// <param name="encoding">the encoding to use</param>
+        /// <returns>the string read</returns>
+        public string ReadUnprefixedString(int encodedLength, Encoding encoding)
+        {
+            // rent a buffer that can hold the string
+            var pooledBuffer = ArrayPool<byte>.Shared.Rent(encodedLength);
+
+            // ensure the pooled buffer is returned to the pool even if an exception is thrown
+            try
+            {
+                // read data
+                ReadBytes(pooledBuffer, encodedLength);
+
+                // decode string
+                return encoding.GetString(pooledBuffer, index: 0, encodedLength);
+            }
+            finally
+            {
+                // release / return the buffer to the array pool
+                ArrayPool<byte>.Shared.Return(pooledBuffer);
+            }
+        }
+
+        /// <summary>
         ///     Reads an <see cref="uint"/> value from the buffer.
         /// </summary>
         /// <returns>the value read</returns>
@@ -1246,6 +1281,117 @@
                 Write(pooledBuffer, offset: 0, length + 2);
 
                 return length + 2;
+            }
+            finally
+            {
+                // release / return the buffer to the array pool
+                ArrayPool<byte>.Shared.Return(pooledBuffer);
+            }
+        }
+
+        /// <summary>
+        ///     Writes a string encoded in UTF-8 to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="charCount">the number of characters</param>
+        /// <returns>the number of total bytes written</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+        /// </exception>
+        public int WriteUnprefixed(string value, int charCount) => Write(value, charCount, Encoding.UTF8);
+
+        /// <summary>
+        ///     Writes a string encoded in UTF-8 prefixed to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <returns>the number of total bytes written</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+        /// </exception>
+        public int WriteUnprefixed(string value) => Write(value, Encoding.UTF8);
+
+        /// <summary>
+        ///     Writes a string encoded in UTF-8 prefixed to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="charIndex">the character index</param>
+        /// <param name="charCount">the number of characters</param>
+        /// <returns>the number of total bytes written</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+        /// </exception>
+        public int WriteUnprefixed(string value, int charIndex, int charCount)
+            => WriteUnprefixed(value, charIndex, charCount, Encoding.UTF8);
+
+        /// <summary>
+        ///     Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="charCount">the number of characters</param>
+        /// <param name="encoding">the encoding to use</param>
+        /// <returns>the number of total bytes written</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+        /// </exception>
+        public int WriteUnprefixed(string value, int charCount, Encoding encoding)
+            => WriteUnprefixed(value, charIndex: 0, charCount, encoding);
+
+        /// <summary>
+        ///     Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="encoding">the encoding to use</param>
+        /// <returns>the number of total bytes written</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+        /// </exception>
+        public int WriteUnprefixed(string value, Encoding encoding)
+            => WriteUnprefixed(value, charIndex: 0, value.Length, encoding);
+
+        /// <summary>
+        ///     Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+        /// </summary>
+        /// <param name="value">the value to write</param>
+        /// <param name="charIndex">the character index</param>
+        /// <param name="charCount">the number of characters</param>
+        /// <param name="encoding">the encoding to use</param>
+        /// <returns>the number of total bytes written</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+        /// </exception>
+        public int WriteUnprefixed(string value, int charIndex, int charCount, Encoding encoding)
+        {
+            // rent a buffer that can hold the string and the 2-byte ushort length prefix
+            var pooledBuffer = ArrayPool<byte>.Shared.Rent(encoding.GetMaxByteCount(charCount));
+
+            // ensure the pooled buffer is returned to the pool even if an exception is thrown
+            try
+            {
+                // encode the string starting at buffer offset 2
+                var length = encoding.GetBytes(value, charIndex, charCount, pooledBuffer, byteIndex: 0);
+
+                // write to buffer
+                Write(pooledBuffer, offset: 0, length);
+
+                return length;
             }
             finally
             {
