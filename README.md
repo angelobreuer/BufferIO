@@ -11,11 +11,6 @@
 	<img alt="CodeFactor.io" src="https://www.codefactor.io/repository/github/angelobreuer/BufferIO/badge?style=for-the-badge" />	
 </a>
 
-<!-- Releases Badge -->
-<a href="https://github.com/angelobreuer/BufferIO/releases">
-	<img alt="GitHub tag (latest SemVer)" src="https://img.shields.io/github/tag/angelobreuer/BufferIO.svg?label=RELEASE&style=for-the-badge">
-</a>
-
 <!-- GitHub issues Badge -->
 <a href="https://github.com/angelobreuer/BufferIO/issues">
 	<img alt="GitHub issues" src="https://img.shields.io/github/issues/angelobreuer/BufferIO.svg?style=for-the-badge">	
