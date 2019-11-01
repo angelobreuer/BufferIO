@@ -1,0 +1,25 @@
+# Build worker image (VM template)
+image: ubuntu
+
+# Maximum number of concurrent jobs for the project
+max_jobs: 3
+
+# Build with Release configuration
+configuration: Release
+
+# Deployment
+deploy:
+  # NuGet Deployment
+  - provider: NuGet
+    api_key:
+      secure: STnuaMnHGB0O7tpgRRp0oAGgN/NOyYLm6sMqlnywLCnmrIPnGks79Ml1Dn8B22TM
+    skip_symbols: false
+    artifact: /.*\.nupkg/
+
+# Build Settings
+build:
+  parallel: true
+  project: src/BufferIO.sln
+  publish_nuget: true
+  publish_nuget_symbols: true
+  verbosity: minimal
