@@ -21,18 +21,10 @@
 	<img alt="GitHub issues" src="https://img.shields.io/github/issues/angelobreuer/BufferIO.svg?style=for-the-badge">	
 </a>
 
-<br/>
-
-<!-- AppVeyor CI (master) Badge 
+<!-- AppVeyor CI (master) Badge -->
 <a href="https://ci.appveyor.com/project/angelobreuer/BufferIO">
 	<img alt="AppVeyor" src="https://img.shields.io/appveyor/ci/angelobreuer/BufferIO?style=for-the-badge">
-</a>	-->
-
-
-<!-- AppVeyor CI (Development) Badge 
-<a href="https://github.com/angelobreuer/BufferIO/tree/dev">
-	<img alt="AppVeyor" src="https://img.shields.io/appveyor/ci/angelobreuer/BufferIO/dev?label=development&style=for-the-badge">
-</a>-->
+</a>
 
 
 </p>
