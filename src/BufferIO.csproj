@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.1</TargetFramework>
+    <TargetFrameworks>netstandard1.1;netstandard2.1</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -9,19 +10,13 @@
     <Authors>Angelo Breuer</Authors>
     <Company>Angelo Breuer</Company>
     <Description>BufferIO is an extensible big-endian oriented byte buffer with pooling support and additional binary read and write streams.</Description>
-    <Copyright>Angelo Breuer 2019</Copyright>
+    <Copyright>Angelo Breuer 2021</Copyright>
     <PackageProjectUrl>https://github.com/angelobreuer/BufferIO</PackageProjectUrl>
     <PackageIconUrl></PackageIconUrl>
     <RepositoryUrl>https://github.com/angelobreuer/BufferIO</RepositoryUrl>
     <PackageTags>bufferio,bigendian,big endian,input output,io,buffer,binary,stream</PackageTags>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>BufferIO.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>BufferIO.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

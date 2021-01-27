@@ -29,15 +29,15 @@
         /// </summary>
         /// <param name="baseStream">the base stream to write to / read from</param>
         /// <param name="leaveOpen">
-        ///     a value indicating whether the specified <paramref name="baseStream"/> should be left
-        ///     open when the <see cref="BigEndianWriter"/> is closed.
+        ///     a value indicating whether the specified <paramref name="baseStream"/> should be
+        ///     left open when the <see cref="BigEndianWriter"/> is closed.
         /// </param>
         public BigEndianWriter(Stream baseStream, bool leaveOpen = false)
         {
             BaseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
             _leaveOpen = leaveOpen;
 
-            _writeBuffer = new byte[8];
+            _writeBuffer = new byte[16];
         }
 
         /// <summary>
@@ -84,6 +84,15 @@
         /// <param name="buffer">the buffer</param>
         public void Write(ArraySegment<byte> buffer) => BaseStream.Write(buffer.Array, buffer.Offset, buffer.Count);
 
+#if NETSTANDARD2_1
+
+        /// <summary>
+        ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        public void Write(ReadOnlySpan<byte> buffer) => BaseStream.Write(buffer);
+#endif // NETSTANDARD2_1
+
         /// <summary>
         ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
         /// </summary>
@@ -100,7 +109,8 @@
         ///     thrown if the specified <paramref name="count"/> is negative.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified
+        ///     <paramref name="count"/>.
         /// </exception>
         public void Write(byte[] buffer, int offset, int count) => BaseStream.Write(buffer, offset, count);
 
@@ -194,7 +204,19 @@
         ///     Writes the specified <paramref name="value"/> to the buffer.
         /// </summary>
         /// <param name="value">the value to write</param>
-        public void Write(Guid value) => Write(value.ToByteArray());
+        public void Write(Guid value)
+        {
+#if NETSTANDARD2_1
+            if (!value.TryWriteBytes(_writeBuffer))
+            {
+                throw new Exception("Error while copying GUID bytes.");
+            }
+
+            FlushWriteBuffer(16);
+#else // NETSTANDARD2_1
+            Write(value.ToByteArray());
+#endif // !NETSTANDARD2_1
+        }
 
         /// <summary>
         ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
