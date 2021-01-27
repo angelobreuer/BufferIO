@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text;
+    using BufferIO.IO;
     using Xunit;
 
     public sealed class ByteBufferTests
@@ -282,6 +283,32 @@
             }
         }
 
+        [Fact]
+        public void TestReadBytesWithNoData()
+        {
+            // create reader
+            using (var reader = Buffer.CreateReader())
+            {
+                // read and verify the data
+                Assert.Throws<EndOfStreamException>(() => reader.ReadBytes(new byte[8]));
+            }
+        }
+
+        [Fact]
+        public void TestReadBytesWithPartialData()
+        {
+            // write test data
+            Buffer.Write(20);
+            Buffer.Reset();
+
+            // create reader
+            using (var reader = Buffer.CreateReader())
+            {
+                // read and verify the data
+                Assert.Throws<EndOfStreamException>(() => reader.ReadBytes(new byte[8]));
+            }
+        }
+
         /// <summary>
         ///     Tests reading a <see cref="double"/> value.
         /// </summary>
@@ -481,6 +508,163 @@
             // ensure the buffers are equal
             Assert.Equal(value, Buffer.ReadUShort());
         }
+
+        [Fact]
+        public void TestReadWithNoData()
+        {
+            // create reader
+            using (var reader = Buffer.CreateReader())
+            {
+                // read and verify the data
+                Assert.Throws<EndOfStreamException>(() => reader.ReadULong());
+            }
+        }
+
+        [Fact]
+        public void TestReadWithPartialData()
+        {
+            // write test data
+            Buffer.Write(20);
+            Buffer.Reset();
+
+            // create reader
+            using (var reader = Buffer.CreateReader())
+            {
+                // read and verify the data
+                Assert.Throws<EndOfStreamException>(() => reader.ReadULong());
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestReadWriteBoolean(bool value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadBoolean());
+
+        [Theory]
+        [InlineData((byte)20)]
+        [InlineData((byte)200)]
+        [InlineData((byte)4)]
+        [InlineData((byte)255)]
+        public void TestReadWriteByte(byte value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadByte());
+
+        [Theory]
+        [InlineData(20D)]
+        [InlineData(double.MaxValue)]
+        [InlineData(double.MinValue)]
+        [InlineData(double.NaN)]
+        public void TestReadWriteDouble(double value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadDouble());
+
+        [Theory]
+        [InlineData(20D)]
+        [InlineData(double.MaxValue)]
+        [InlineData(double.MinValue)]
+        [InlineData(double.NaN)]
+        public void TestReadWriteDoubleThrowsOnEndOfStream(double value) => TestReadEmptyThrowsOnEndOfStream(value, (w, v) => w.Write(v), x => x.ReadDouble());
+
+        [Theory]
+        [InlineData(20D)]
+        [InlineData(float.MaxValue)]
+        [InlineData(float.MinValue)]
+        [InlineData(float.NaN)]
+        public void TestReadWriteFloat(float value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadFloat());
+
+        [Theory]
+        [InlineData(20D)]
+        [InlineData(float.MaxValue)]
+        [InlineData(float.MinValue)]
+        [InlineData(float.NaN)]
+        public void TestReadWriteFloatThrowsOnEndOfStream(float value) => TestReadEmptyThrowsOnEndOfStream(value, (w, v) => w.Write(v), x => x.ReadFloat());
+
+        [Theory]
+        [InlineData("185ccbfd-f12d-493f-a1c5-cc4b7565c68f")]
+        [InlineData("06ebfa01-fdee-448a-9feb-fa5ff297de18")]
+        [InlineData("36de22af-75f7-42c0-b68b-60a372971af7")]
+        [InlineData("5af58d8b-1ba7-4f25-ae0e-62cb3b5760b9")]
+        public void TestReadWriteGuid(string rawValue) => TestReadWrite(Guid.Parse(rawValue), (w, v) => w.Write(v), x => x.ReadGuid());
+
+        [Theory]
+        [InlineData("185ccbfd-f12d-493f-a1c5-cc4b7565c68f")]
+        [InlineData("06ebfa01-fdee-448a-9feb-fa5ff297de18")]
+        [InlineData("36de22af-75f7-42c0-b68b-60a372971af7")]
+        [InlineData("5af58d8b-1ba7-4f25-ae0e-62cb3b5760b9")]
+        public void TestReadWriteGuidThrowsOnEndOfStream(string rawValue) => TestReadEmptyThrowsOnEndOfStream(Guid.Parse(rawValue), (w, v) => w.Write(v), x => x.ReadGuid());
+
+        [Theory]
+        [InlineData(int.MaxValue)]
+        [InlineData(int.MinValue)]
+        [InlineData(251581)]
+        [InlineData(5454)]
+        public void TestReadWriteInt(int value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadInt());
+
+        [Theory]
+        [InlineData(int.MaxValue)]
+        [InlineData(int.MinValue)]
+        [InlineData(251581)]
+        [InlineData(5454)]
+        public void TestReadWriteIntThrowsOnEndOfStream(int value) => TestReadEmptyThrowsOnEndOfStream(value, (w, v) => w.Write(v), x => x.ReadInt());
+
+        [Theory]
+        [InlineData(long.MinValue)]
+        [InlineData(long.MaxValue)]
+        [InlineData(251581L)]
+        [InlineData(5454L)]
+        public void TestReadWriteLong(long value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadLong());
+
+        [Theory]
+        [InlineData(long.MinValue)]
+        [InlineData(long.MaxValue)]
+        [InlineData(251581L)]
+        [InlineData(5454L)]
+        public void TestReadWriteLongThrowsOnEndOfStream(long value) => TestReadEmptyThrowsOnEndOfStream(value, (w, v) => w.Write(v), x => x.ReadLong());
+
+        [Theory]
+        [InlineData((sbyte)20)]
+        [InlineData((sbyte)-50)]
+        [InlineData((sbyte)4)]
+        [InlineData(sbyte.MaxValue)]
+        public void TestReadWriteSByte(sbyte value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadSByte());
+
+        /// <summary>
+        ///     Tests writing / reading a <see cref="string"/> to / from the buffer.
+        /// </summary>
+        /// <param name="value">the value to test</param>
+        [Theory]
+        [InlineData(""), InlineData("\0")]
+        [InlineData("Hello World!"), InlineData("\t\u6161\u4474")]
+        public void TestReadWriteString(string value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadString());
+
+        [Theory]
+        [InlineData(""), InlineData("\0")]
+        [InlineData("Hello World!"), InlineData("\t\u6161\u4474")]
+        public void TestReadWriteStringThrowsOnEndOfStream(string value) => TestReadEmptyThrowsOnEndOfStream(value, (w, v) => w.Write(v), x => x.ReadString());
+
+        [Theory]
+        [InlineData(uint.MaxValue)]
+        [InlineData(uint.MinValue)]
+        [InlineData(251581U)]
+        [InlineData(5454U)]
+        public void TestReadWriteUInt(uint value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadUInt());
+
+        [Theory]
+        [InlineData(uint.MaxValue)]
+        [InlineData(uint.MinValue)]
+        [InlineData(251581U)]
+        [InlineData(5454U)]
+        public void TestReadWriteUIntThrowsOnEndOfStream(uint value) => TestReadEmptyThrowsOnEndOfStream(value, (w, v) => w.Write(v), x => x.ReadUInt());
+
+        [Theory]
+        [InlineData(ulong.MinValue)]
+        [InlineData(ulong.MaxValue)]
+        [InlineData(251581UL)]
+        [InlineData(5454UL)]
+        public void TestReadWriteULong(ulong value) => TestReadWrite(value, (w, v) => w.Write(v), x => x.ReadULong());
+
+        [Theory]
+        [InlineData(ulong.MinValue)]
+        [InlineData(ulong.MaxValue)]
+        [InlineData(251581UL)]
+        [InlineData(5454UL)]
+        public void TestReadWriteULongThrowsOnEndOfStream(ulong value) => TestReadEmptyThrowsOnEndOfStream(value, (w, v) => w.Write(v), x => x.ReadULong());
 
         /// <summary>
         ///     Tests writing / reading a <see cref="short"/> to / from the buffer.
@@ -845,6 +1029,43 @@
             }
 
             return buffer;
+        }
+
+        private void TestReadEmptyThrowsOnEndOfStream<T>(T value, Action<BigEndianWriter, T> writeFunc, Func<BigEndianReader, T> readFunc)
+        {
+            // create writer
+            using (var writer = Buffer.CreateWriter())
+            {
+                writeFunc(writer, value);
+            }
+
+            Buffer.Reset();
+            Buffer.Length = (int)Math.Floor(Buffer.Length / 2D);
+
+            // create reader
+            using (var reader = Buffer.CreateReader())
+            {
+                // read and verify the data
+                Assert.Throws<EndOfStreamException>(() => readFunc(reader));
+            }
+        }
+
+        private void TestReadWrite<T>(T value, Action<BigEndianWriter, T> writeFunc, Func<BigEndianReader, T> readFunc)
+        {
+            // create writer
+            using (var writer = Buffer.CreateWriter())
+            {
+                writeFunc(writer, value);
+            }
+
+            Buffer.Reset();
+
+            // create reader
+            using (var reader = Buffer.CreateReader())
+            {
+                // read and verify the data
+                Assert.Equal(value, readFunc(reader));
+            }
         }
     }
 }

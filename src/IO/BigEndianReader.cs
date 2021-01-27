@@ -24,8 +24,8 @@
         /// </summary>
         /// <param name="baseStream">the base stream to write to / read from</param>
         /// <param name="leaveOpen">
-        ///     a value indicating whether the specified <paramref name="baseStream"/> should be left
-        ///     open when the <see cref="BigEndianReader"/> is closed.
+        ///     a value indicating whether the specified <paramref name="baseStream"/> should be
+        ///     left open when the <see cref="BigEndianReader"/> is closed.
         /// </param>
         public BigEndianReader(Stream baseStream, bool leaveOpen = false)
         {
@@ -112,11 +112,45 @@
         /// <param name="count">the number of bytes to read</param>
         public void ReadBytes(byte[] buffer, int offset, int count)
         {
-            if (BaseStream.Read(buffer, offset, count) < 0)
+#if NETSTANDARD2_1
+            ReadBytes(buffer.AsSpan(offset, count));
+#else // !NETSTANDARD2_1
+            var totalBytesRead = 0;
+
+            while (totalBytesRead < count)
             {
-                throw new EndOfStreamException();
+                var bytesRead = BaseStream.Read(buffer, offset + totalBytesRead, count - totalBytesRead);
+
+                if (bytesRead <= 0)
+                {
+                    throw new EndOfStreamException();
+                }
+
+                totalBytesRead += bytesRead;
+            }
+#endif // NETSTANDARD2_1
+        }
+
+#if NETSTANDARD2_1
+
+        /// <summary>
+        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+        /// </summary>
+        /// <param name="buffer">the buffer</param>
+        public void ReadBytes(Span<byte> buffer)
+        {
+            while (buffer.Length is not 0)
+            {
+                var bytesRead = BaseStream.Read(buffer);
+                if (bytesRead <= 0)
+                {
+                    throw new EndOfStreamException();
+                }
+
+                buffer = buffer.Slice(0, bytesRead);
             }
         }
+#endif // NETSTANDARD2_1
 
         /// <summary>
         ///     Reads a <see cref="double"/> value.
@@ -142,7 +176,16 @@
         ///     Reads a <see cref="Guid"/> value.
         /// </summary>
         /// <returns>the value read</returns>
-        public Guid ReadGuid() => new Guid(Read(16));
+        public unsafe Guid ReadGuid()
+        {
+#if NETSTANDARD2_1
+            Span<byte> buffer = stackalloc byte[16];
+            ReadBytes(buffer);
+            return new Guid(buffer);
+#else // NETSTANDARD2_1
+            return new Guid(Read(16));
+#endif // !NETSTANDARD2_1
+        }
 
         /// <summary>
         ///     Reads a <see cref="int"/> value.
@@ -193,7 +236,8 @@
         /// <returns>the string read</returns>
         public string ReadString(Encoding encoding)
         {
-            // read the length prefix (a 2-byte long ushort indicating the number of bytes the string has)
+            // read the length prefix (a 2-byte long ushort indicating the number of bytes the
+            // string has)
             var byteCount = ReadUShort();
 
             // rent a buffer that can hold the string
@@ -286,10 +330,7 @@
         /// <param name="count">the number of bytes to fill the read buffer with</param>
         protected void FillReadBuffer(int count)
         {
-            if (BaseStream.Read(_readBuffer, offset: 0, count) < count)
-            {
-                throw new EndOfStreamException();
-            }
+            ReadBytes(_readBuffer, count);
         }
     }
 }
