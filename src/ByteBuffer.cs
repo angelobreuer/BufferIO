@@ -550,7 +550,7 @@
             }
 
             // create array segment
-            return new ArraySegment<byte>(_buffer, _origin, count: Remaining);
+            return new ArraySegment<byte>(_buffer, _origin, Length);
         }
 
         /// <summary>
