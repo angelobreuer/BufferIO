@@ -1,1513 +1,1507 @@
-﻿namespace BufferIO
+﻿namespace BufferIO;
+
+using System;
+using System.Buffers;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using BufferIO.IO;
+using BufferIO.Util;
+
+/// <summary>
+///     A class for a bi-directional (write and read), big-endian byte buffer which supports
+///     buffer pooling and user-provided buffers.
+/// </summary>
+public unsafe class ByteBuffer : IDisposable
 {
-    using System;
-    using System.Buffers;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using BufferIO.IO;
-    using BufferIO.Util;
+    /// <summary>
+    ///     Gets the default initial capacity.
+    /// </summary>
+    public const int DefaultInitialCapacity = 256;
 
     /// <summary>
-    ///     A class for a bi-directional (write and read), big-endian byte buffer which supports
-    ///     buffer pooling and user-provided buffers.
+    ///     The maximum encoded byte size of string.
     /// </summary>
-    public unsafe class ByteBuffer : IDisposable
+    public const int MaximumStringByteSize = 0xFFFF;
+
+    /// <summary>
+    ///     The general buffer write offset (not the writing position).
+    /// </summary>
+    private readonly int _origin;
+
+    /// <summary>
+    ///     The array pool the buffer was rent from.
+    /// </summary>
+    private readonly ArrayPool<byte> _pool;
+
+    /// <summary>
+    ///     The local buffer storing the data.
+    /// </summary>
+    private byte[] _buffer;
+
+    /// <summary>
+    ///     The number of bytes allocated for the buffer.
+    /// </summary>
+    private int _capacity;
+
+    /// <summary>
+    ///     The current read / write position in the <see cref="_buffer"/>.
+    /// </summary>
+    private int _cursor;
+
+    /// <summary>
+    ///     A value indicating whether the buffer was disposed.
+    /// </summary>
+    private bool _disposed;
+
+    /// <summary>
+    ///     The buffer length.
+    /// </summary>
+    private int _length;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <param name="offset">the buffer offset</param>
+    /// <param name="count">the buffer byte count allocated for the buffer</param>
+    /// <param name="writable">a value indicating whether the buffer should support writing</param>
+    /// <param name="exposable">
+    ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+    /// </exception>
+    public ByteBuffer(byte[] buffer, int offset, int count, bool writable = true, bool exposable = true)
     {
-        /// <summary>
-        ///     Gets the default initial capacity.
-        /// </summary>
-        public const int DefaultInitialCapacity = 256;
+        _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
+        _origin = offset;
+        _cursor = offset;
+        _length = count;
+        _capacity = count;
 
-        /// <summary>
-        ///     The maximum encoded byte size of string.
-        /// </summary>
-        public const int MaximumStringByteSize = 0xFFFF;
+        IsExposable = exposable;
+        IsReadOnly = !writable;
+        IsExpandable = false;
+    }
 
-        /// <summary>
-        ///     An empty byte buffer.
-        /// </summary>
-        private static readonly byte[] _empty = new byte[0];
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <param name="count">the buffer byte count allocated for the buffer</param>
+    /// <param name="writable">a value indicating whether the buffer should support writing</param>
+    /// <param name="exposable">
+    ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+    /// </exception>
+    public ByteBuffer(byte[] buffer, int count, bool writable = true, bool exposable = true)
+        : this(buffer, offset: 0, count, writable, exposable)
+    {
+    }
 
-        /// <summary>
-        ///     The general buffer write offset (not the writing position).
-        /// </summary>
-        private readonly int _origin;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <param name="writable">a value indicating whether the buffer should support writing</param>
+    /// <param name="exposable">
+    ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+    /// </exception>
+    public ByteBuffer(byte[] buffer, bool writable = true, bool exposable = true)
+        : this(buffer, offset: 0, buffer.Length, writable, exposable)
+    {
+    }
 
-        /// <summary>
-        ///     The array pool the buffer was rent from.
-        /// </summary>
-        private readonly ArrayPool<byte> _pool;
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <param name="writable">a value indicating whether the buffer should support writing</param>
+    /// <param name="exposable">
+    ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+    /// </exception>
+    public ByteBuffer(ArraySegment<byte> buffer, bool writable = true, bool exposable = true)
+        : this(buffer.Array, buffer.Offset, buffer.Count, writable, exposable)
+    {
+    }
 
-        /// <summary>
-        ///     The local buffer storing the data.
-        /// </summary>
-        private byte[] _buffer;
-
-        /// <summary>
-        ///     The number of bytes allocated for the buffer.
-        /// </summary>
-        private int _capacity;
-
-        /// <summary>
-        ///     The current read / write position in the <see cref="_buffer"/>.
-        /// </summary>
-        private int _cursor;
-
-        /// <summary>
-        ///     A value indicating whether the buffer was disposed.
-        /// </summary>
-        private bool _disposed;
-
-        /// <summary>
-        ///     The buffer length.
-        /// </summary>
-        private int _length;
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <param name="offset">the buffer offset</param>
-        /// <param name="count">the buffer byte count allocated for the buffer</param>
-        /// <param name="writable">a value indicating whether the buffer should support writing</param>
-        /// <param name="exposable">
-        ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
-        /// </exception>
-        public ByteBuffer(byte[] buffer, int offset, int count, bool writable = true, bool exposable = true)
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ByteBuffer"/> class with a pooled buffer backend.
+    /// </summary>
+    /// <param name="arrayPool">
+    ///     the byte array pool from which the <see cref="ByteBuffer"/> should be pooled from
+    /// </param>
+    /// <param name="initialCapacity">the initial buffer capacity</param>
+    /// <param name="expandable">a value indicating whether the buffer should be expandable</param>
+    /// <param name="writable">a value indicating whether the buffer should support writing</param>
+    /// <param name="exposable">
+    ///     a value indicating whether the specified <see cref="ByteBuffer"/> should be exposable
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="initialCapacity"/> is negative.
+    /// </exception>
+    public ByteBuffer(ArrayPool<byte> arrayPool, int initialCapacity = DefaultInitialCapacity,
+        bool expandable = true, bool writable = true, bool exposable = true)
+    {
+        if (initialCapacity is < 0)
         {
-            _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
-            _origin = offset;
-            _cursor = offset;
-            _length = count;
-            _capacity = count;
-
-            IsExposable = exposable;
-            IsReadOnly = !writable;
-            IsExpandable = false;
+            throw new ArgumentOutOfRangeException(nameof(initialCapacity), initialCapacity,
+                "The specified initial buffer capacity can not be null.");
         }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <param name="count">the buffer byte count allocated for the buffer</param>
-        /// <param name="writable">a value indicating whether the buffer should support writing</param>
-        /// <param name="exposable">
-        ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
-        /// </exception>
-        public ByteBuffer(byte[] buffer, int count, bool writable = true, bool exposable = true)
-            : this(buffer, offset: 0, count, writable, exposable)
-        {
-        }
+        _pool = arrayPool;
+        _buffer = arrayPool.Rent(initialCapacity);
+        _capacity = _buffer.Length;
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <param name="writable">a value indicating whether the buffer should support writing</param>
-        /// <param name="exposable">
-        ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
-        /// </exception>
-        public ByteBuffer(byte[] buffer, bool writable = true, bool exposable = true)
-            : this(buffer, offset: 0, buffer.Length, writable, exposable)
-        {
-        }
+        IsExpandable = expandable;
+        IsReadOnly = !writable;
+        IsExposable = exposable;
+    }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ByteBuffer"/> class.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <param name="writable">a value indicating whether the buffer should support writing</param>
-        /// <param name="exposable">
-        ///     a value indicating whether the specified <paramref name="buffer"/> should be exposable
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
-        /// </exception>
-        public ByteBuffer(ArraySegment<byte> buffer, bool writable = true, bool exposable = true)
-            : this(buffer.Array, buffer.Offset, buffer.Count, writable, exposable)
-        {
-        }
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ByteBuffer"/> class with a pooled buffer backend.
+    /// </summary>
+    /// <param name="initialCapacity">the initial buffer capacity</param>
+    /// <param name="expandable">a value indicating whether the buffer should be expandable</param>
+    /// <param name="writable">a value indicating whether the buffer should support writing</param>
+    /// <param name="exposable">
+    ///     a value indicating whether the specified <see cref="ByteBuffer"/> should be exposable
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="initialCapacity"/> is negative.
+    /// </exception>
+    public ByteBuffer(int initialCapacity = DefaultInitialCapacity,
+        bool expandable = true, bool writable = true, bool exposable = true)
+        : this(DefaultBufferPool, initialCapacity, expandable, writable, exposable)
+    {
+    }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ByteBuffer"/> class with a pooled buffer backend.
-        /// </summary>
-        /// <param name="arrayPool">
-        ///     the byte array pool from which the <see cref="ByteBuffer"/> should be pooled from
-        /// </param>
-        /// <param name="initialCapacity">the initial buffer capacity</param>
-        /// <param name="expandable">a value indicating whether the buffer should be expandable</param>
-        /// <param name="writable">a value indicating whether the buffer should support writing</param>
-        /// <param name="exposable">
-        ///     a value indicating whether the specified <see cref="ByteBuffer"/> should be exposable
-        /// </param>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="initialCapacity"/> is negative.
-        /// </exception>
-        public ByteBuffer(ArrayPool<byte> arrayPool, int initialCapacity = DefaultInitialCapacity,
-            bool expandable = true, bool writable = true, bool exposable = true)
+    /// <summary>
+    ///     Gets the default array pool for pooled <see cref="ByteBuffer"/> instances.
+    /// </summary>
+    public static ArrayPool<byte> DefaultBufferPool => ArrayPool<byte>.Shared;
+
+    /// <summary>
+    ///     Gets or sets the number of allocated internal buffer bytes.
+    /// </summary>
+    public int Capacity
+    {
+        get => _capacity;
+
+        set
         {
-            if (initialCapacity < 0)
+            // check if the capacity has not changed
+            if (_capacity == value)
             {
-                throw new ArgumentOutOfRangeException(nameof(initialCapacity), initialCapacity,
-                    "The specified initial buffer capacity can not be null.");
-            }
-
-            _pool = arrayPool;
-            _buffer = arrayPool.Rent(initialCapacity);
-            _capacity = _buffer.Length;
-
-            IsExpandable = expandable;
-            IsReadOnly = !writable;
-            IsExposable = exposable;
-        }
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ByteBuffer"/> class with a pooled buffer backend.
-        /// </summary>
-        /// <param name="initialCapacity">the initial buffer capacity</param>
-        /// <param name="expandable">a value indicating whether the buffer should be expandable</param>
-        /// <param name="writable">a value indicating whether the buffer should support writing</param>
-        /// <param name="exposable">
-        ///     a value indicating whether the specified <see cref="ByteBuffer"/> should be exposable
-        /// </param>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="initialCapacity"/> is negative.
-        /// </exception>
-        public ByteBuffer(int initialCapacity = DefaultInitialCapacity,
-            bool expandable = true, bool writable = true, bool exposable = true)
-            : this(DefaultBufferPool, initialCapacity, expandable, writable, exposable)
-        {
-        }
-
-        /// <summary>
-        ///     Gets the default array pool for pooled <see cref="ByteBuffer"/> instances.
-        /// </summary>
-        public static ArrayPool<byte> DefaultBufferPool => ArrayPool<byte>.Shared;
-
-        /// <summary>
-        ///     Gets or sets the number of allocated internal buffer bytes.
-        /// </summary>
-        public int Capacity
-        {
-            get => _capacity;
-
-            set
-            {
-                // check if the capacity has not changed
-                if (_capacity == value)
-                {
-                    // the capacity did remain the same
-                    return;
-                }
-
-                // ensure that the capacity is not negative
-                if (value < 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), value,
-                        "The specified capacity can not be negative.");
-                }
-
-                // ensure the buffer is expandable
-                EnsureExpandable();
-
-                // check if the buffer is shrinking
-                if (value < _capacity)
-                {
-                    // clear shrink-ed bytes
-                    Array.Clear(_buffer, value, _capacity);
-
-                    // shrink length and position
-                    _cursor = Math.Min(value, _cursor);
-                    Length = value;
-                }
-                else
-                {
-                    // rent a new buffer with the capacity
-                    var newBuffer = _pool.Rent(value);
-
-                    // copy bytes
-                    Buffer.BlockCopy(_buffer, srcOffset: 0, newBuffer, dstOffset: 0, count: _buffer.Length);
-
-                    // return old buffer to array pool
-                    _pool.Return(_buffer);
-
-                    // set the new buffer
-                    _buffer = newBuffer;
-                }
-
-                // set new capacity
-                _capacity = value;
-            }
-        }
-
-        /// <summary>
-        ///     Gets the buffer endianness.
-        /// </summary>
-        public Endianness Endianness { get; } = Endianness.BigEndian;
-
-        /// <summary>
-        ///     Gets a value indicating whether the buffer is empty.
-        /// </summary>
-        public bool IsEmpty => Length == 0;
-
-        /// <summary>
-        ///     Gets a value indicating whether the buffer is expandable.
-        /// </summary>
-        public bool IsExpandable { get; }
-
-        /// <summary>
-        ///     Gets a value indicating whether the internal buffer is exposable.
-        /// </summary>
-        public bool IsExposable { get; }
-
-        /// <summary>
-        ///     Gets a value indicating whether the buffer was pooled from an array pool.
-        /// </summary>
-        public bool IsPooled => _pool != null;
-
-        /// <summary>
-        ///     Gets a value indicating whether the buffer is read-only.
-        /// </summary>
-        public bool IsReadOnly { get; }
-
-        /// <summary>
-        ///     Gets the current length of the buffer.
-        /// </summary>
-        public int Length
-        {
-            get => _length;
-
-            set
-            {
-                // ensure length is not negative.
-                if (value < 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), value,
-                        "The specified length can not be negative.");
-                }
-
-                // check if the length is beyond the buffer capacity, then increase buffer size
-                if (value > Capacity)
-                {
-                    // increase capacity
-                    Capacity = value;
-                }
-
-                _length = value;
-            }
-        }
-
-        /// <summary>
-        ///     Gets or sets the current buffer cursor position.
-        /// </summary>
-        public int Position
-        {
-            get => _cursor - _origin;
-
-            set
-            {
-                // ensure position is not negative.
-                if (value < 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), value,
-                        "The specified position can not be negative");
-                }
-
-                // ensure position is less than capacity
-                if (value >= Capacity)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), value,
-                        "The specified position can not be beyond the buffer capacity.");
-                }
-
-                _cursor = value + _origin;
-            }
-        }
-
-        /// <summary>
-        ///     Gets the amount of bytes remaining until the buffer is full.
-        /// </summary>
-        public int Remaining => Length - Position;
-
-        /// <summary>
-        ///     Gets or sets the <see cref="byte"/> at the specified zero-based <paramref name="index"/>.
-        /// </summary>
-        /// <param name="index">the zero-based absolute <see cref="byte"/> index</param>
-        /// <returns>the <see cref="byte"/> at the specified zero-based <paramref name="index"/></returns>
-        public byte this[int index]
-        {
-            get
-            {
-                // ensure the index is in range
-                if ((uint)index >= (uint)_buffer.Length)
-                {
-                    // The index was out of range
-                    throw new IndexOutOfRangeException();
-                }
-
-                // return byte at index
-                return _buffer[index];
-            }
-
-            set
-            {
-                // ensure the index is in range
-                if ((uint)index >= (uint)Length)
-                {
-                    // The index was out of range
-                    throw new IndexOutOfRangeException();
-                }
-
-                // set byte at index
-                _buffer[index] = value;
-            }
-        }
-
-        /// <summary>
-        ///     Validates the specified buffer specification ( <paramref name="offset"/> and
-        ///     <paramref name="count"/> in relation with the specified <paramref name="buffer"/>).
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <param name="offset">the byte offset</param>
-        /// <param name="count">the number of bytes (relative to <paramref name="offset"/>)</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="offset"/> is negative.
-        /// </exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="count"/> is negative.
-        /// </exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
-        /// </exception>
-        public static void ValidateBuffer(byte[] buffer, int offset, int count)
-        {
-            if (buffer is null)
-            {
-                throw new ArgumentNullException(nameof(buffer),
-                    "The specified buffer can not be null.");
-            }
-
-            if (offset < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(offset), offset,
-                    "The specified offset can not be negative.");
-            }
-
-            if (count < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(count), count,
-                    "The specified count can not be negative.");
-            }
-
-            if (buffer.Length - offset < count)
-            {
-                throw new ArgumentOutOfRangeException(nameof(count), count,
-                    "The specified buffer is too small for the specified count.");
-            }
-        }
-
-        /// <summary>
-        ///     Creates a memory stream from the buffer.
-        /// </summary>
-        /// <returns>the memory stream</returns>
-        public MemoryStream AsMemoryStream()
-            => new MemoryStream(_buffer, _origin, Length, !IsReadOnly);
-
-        /// <summary>
-        ///     Clears the buffer.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        public void Clear()
-        {
-            EnsureWritable();
-            Capacity = 0;
-        }
-
-        /// <summary>
-        ///     Copies the internal buffer to the specified <paramref name="stream"/>.
-        /// </summary>
-        /// <param name="stream">the stream to copy the buffer to</param>
-        /// <param name="full">
-        ///     a value indicating whether the full buffer should be copied (
-        ///     <see langword="false"/>, from start to end); or the buffer from the current cursor to
-        ///     the end ( <see langword="true"/>).
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="stream"/> is <see langword="null"/>.
-        /// </exception>
-        public void CopyTo(Stream stream, bool full = true)
-        {
-            if (stream is null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
-
-            stream.Write(_buffer, full ? _origin : _cursor, _length);
-        }
-
-        /// <summary>
-        ///     Copies the internal buffer to the specified <paramref name="stream"/> asynchronously.
-        /// </summary>
-        /// <param name="stream">the stream to copy the buffer to</param>
-        /// <param name="full">
-        ///     a value indicating whether the full buffer should be copied (
-        ///     <see langword="false"/>, from start to end); or the buffer from the current cursor to
-        ///     the end ( <see langword="true"/>).
-        /// </param>
-        /// <param name="cancellationToken">
-        ///     a cancellation token used to propagate notification that the asynchronous operation
-        ///     should be canceled.
-        /// </param>
-        /// <returns>a task that represents the asynchronous operation</returns>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="stream"/> is <see langword="null"/>.
-        /// </exception>
-        public Task CopyToAsync(Stream stream, bool full = true, CancellationToken cancellationToken = default)
-        {
-            if (stream is null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
-
-            return stream.WriteAsync(_buffer, full ? _origin : _cursor, _length, cancellationToken);
-        }
-
-        /// <summary>
-        ///     Creates a <see cref="BigEndianReader"/> that reads from the buffer.
-        /// </summary>
-        /// <returns>the <see cref="BigEndianReader"/> instance</returns>
-        public BigEndianReader CreateReader()
-            => new BigEndianReader(CreateStream());
-
-        /// <summary>
-        ///     Creates a <see cref="Stream"/> that can write to / read from the buffer.
-        /// </summary>
-        /// <returns>the <see cref="Stream"/> instance</returns>
-        public Stream CreateStream()
-            => new ByteBufferStream(this);
-
-        /// <summary>
-        ///     Creates a <see cref="BigEndianWriter"/> that writes to the buffer.
-        /// </summary>
-        /// <returns>the <see cref="BigEndianWriter"/> instance</returns>
-        public BigEndianWriter CreateWriter()
-            => new BigEndianWriter(CreateStream());
-
-        /// <summary>
-        ///     Disposes the <see cref="ByteBuffer"/> instance and releases the buffer if it was rent
-        ///     from an array pool ( <see cref="IsPooled"/>).
-        /// </summary>
-        public virtual void Dispose()
-        {
-            if (_disposed)
-            {
-                // instance already disposed
+                // the capacity did remain the same
                 return;
             }
 
-            // set disposed flag
-            _disposed = true;
-
-            // check if the buffer was rent from the array pool
-            if (IsPooled)
+            // ensure that the capacity is not negative
+            if (value < 0)
             {
-                // return the buffer to the array pool
+                throw new ArgumentOutOfRangeException(nameof(value), value,
+                    "The specified capacity can not be negative.");
+            }
+
+            // ensure the buffer is expandable
+            EnsureExpandable();
+
+            // check if the buffer is shrinking
+            if (value < _capacity)
+            {
+                // clear shrink-ed bytes
+                Array.Clear(_buffer, value, _capacity);
+
+                // shrink length and position
+                _cursor = Math.Min(value, _cursor);
+                Length = value;
+            }
+            else
+            {
+                // rent a new buffer with the capacity
+                var newBuffer = _pool.Rent(value);
+
+                // copy bytes
+                Buffer.BlockCopy(_buffer, srcOffset: 0, newBuffer, dstOffset: 0, count: _buffer.Length);
+
+                // return old buffer to array pool
                 _pool.Return(_buffer);
-            }
-        }
 
-        /// <summary>
-        ///     Gets the internal buffer.
-        /// </summary>
-        /// <returns>the internal buffer</returns>
-        /// <exception cref="UnauthorizedAccessException">
-        ///     thrown if the buffer is not exposable ( <see cref="IsExposable"/>).
-        /// </exception>
-        public ArraySegment<byte> GetBuffer()
+                // set the new buffer
+                _buffer = newBuffer;
+            }
+
+            // set new capacity
+            _capacity = value;
+        }
+    }
+
+    /// <summary>
+    ///     Gets the buffer endianness.
+    /// </summary>
+    public Endianness Endianness { get; } = Endianness.BigEndian;
+
+    /// <summary>
+    ///     Gets a value indicating whether the buffer is empty.
+    /// </summary>
+    public bool IsEmpty => Length == 0;
+
+    /// <summary>
+    ///     Gets a value indicating whether the buffer is expandable.
+    /// </summary>
+    public bool IsExpandable { get; }
+
+    /// <summary>
+    ///     Gets a value indicating whether the internal buffer is exposable.
+    /// </summary>
+    public bool IsExposable { get; }
+
+    /// <summary>
+    ///     Gets a value indicating whether the buffer was pooled from an array pool.
+    /// </summary>
+    public bool IsPooled => _pool is not null;
+
+    /// <summary>
+    ///     Gets a value indicating whether the buffer is read-only.
+    /// </summary>
+    public bool IsReadOnly { get; }
+
+    /// <summary>
+    ///     Gets the current length of the buffer.
+    /// </summary>
+    public int Length
+    {
+        get => _length;
+
+        set
         {
-            // ensure buffer is exposable
-            if (!IsExposable)
+            // ensure length is not negative.
+            if (value < 0)
             {
-                throw new UnauthorizedAccessException("The internal buffer is not exposable.");
+                throw new ArgumentOutOfRangeException(nameof(value), value,
+                    "The specified length can not be negative.");
             }
 
-            // create array segment
-            return new ArraySegment<byte>(_buffer, _origin, Length);
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="byte"/> sequence.
-        /// </summary>
-        /// <param name="count">the number of bytes to read</param>
-        /// <returns>the <see cref="byte"/> sequence</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public byte[] Read(int count)
-        {
-            var buffer = new byte[count];
-            ReadBytes(buffer, count);
-            return buffer;
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="bool"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public bool ReadBoolean() => ReadByte() != 0;
-
-        /// <summary>
-        ///     Reads a <see cref="byte"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public byte ReadByte()
-        {
-            var cursor = EmulateRead(1);
-            return _buffer[cursor];
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <param name="count">the number of bytes to read</param>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public void ReadBytes(byte[] buffer, int count)
-            => ReadBytes(buffer, offset: 0, count);
-
-        /// <summary>
-        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public void ReadBytes(byte[] buffer)
-            => ReadBytes(buffer, offset: 0, buffer.Length);
-
-        /// <summary>
-        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public void ReadBytes(ArraySegment<byte> buffer)
-            => ReadBytes(buffer.Array, buffer.Offset, buffer.Count);
-
-        /// <summary>
-        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <param name="offset">the buffer write offset</param>
-        /// <param name="count">the number of bytes to read</param>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public void ReadBytes(byte[] buffer, int offset, int count)
-        {
-            var cursor = EmulateRead(count);
-            Buffer.BlockCopy(_buffer, cursor, buffer, offset, count);
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
-        /// </summary>
-        /// <param name="buffer">
-        ///     the memory address of the first element to write the data to
-        /// </param>
-        /// <param name="count">the number of bytes to read</param>
-        public void ReadBytes(byte* buffer, int count)
-        {
-            var cursor = EmulateRead(count);
-            Marshal.Copy(_buffer, cursor, new IntPtr(buffer), count);
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="double"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public double ReadDouble()
-        {
-            var cursor = EmulateRead(sizeof(double));
-            return BigEndian.ToDouble(_buffer, cursor);
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="float"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public float ReadFloat()
-        {
-            var cursor = EmulateRead(sizeof(float));
-            return BigEndian.ToFloat(_buffer, cursor);
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="Guid"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public Guid ReadGuid() => new Guid(Read(16));
-
-        /// <summary>
-        ///     Reads an <see cref="int"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public int ReadInt()
-        {
-            var cursor = EmulateRead(sizeof(int));
-            return BigEndian.ToInt32(_buffer, cursor);
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="long"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public long ReadLong()
-        {
-            var cursor = EmulateRead(sizeof(long));
-            return BigEndian.ToInt64(_buffer, cursor);
-        }
-
-        /// <summary>
-        ///     Reads a <see cref="sbyte"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public sbyte ReadSByte() => (sbyte)ReadByte();
-
-        /// <summary>
-        ///     Reads a <see cref="short"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public short ReadShort()
-        {
-            var cursor = EmulateRead(sizeof(short));
-            return BigEndian.ToInt16(_buffer, cursor);
-        }
-
-        /// <summary>
-        ///     Reads an UTF-8 encoded, length-prefixed <see cref="string"/>.
-        /// </summary>
-        /// <returns>the string read</returns>
-        public string ReadString() => ReadString(Encoding.UTF8);
-
-        /// <summary>
-        ///     Reads a length-prefixed <see cref="string"/> using the specified <paramref name="encoding"/>.
-        /// </summary>
-        /// <param name="encoding">the encoding to use</param>
-        /// <returns>the string read</returns>
-        public string ReadString(Encoding encoding)
-        {
-            // read the length prefix (a 2-byte long ushort indicating the number of bytes the string has)
-            var byteCount = ReadUShort();
-
-            // rent a buffer that can hold the string
-            var pooledBuffer = ArrayPool<byte>.Shared.Rent(byteCount);
-
-            // ensure the pooled buffer is returned to the pool even if an exception is thrown
-            try
+            // check if the length is beyond the buffer capacity, then increase buffer size
+            if (value > Capacity)
             {
-                // read data
-                ReadBytes(pooledBuffer, byteCount);
-
-                // decode string
-                return encoding.GetString(pooledBuffer, index: 0, byteCount);
+                // increase capacity
+                Capacity = value;
             }
-            finally
+
+            _length = value;
+        }
+    }
+
+    /// <summary>
+    ///     Gets or sets the current buffer cursor position.
+    /// </summary>
+    public int Position
+    {
+        get => _cursor - _origin;
+
+        set
+        {
+            // ensure position is not negative.
+            if (value < 0)
             {
-                // release / return the buffer to the array pool
-                ArrayPool<byte>.Shared.Return(pooledBuffer);
+                throw new ArgumentOutOfRangeException(nameof(value), value,
+                    "The specified position can not be negative");
             }
-        }
 
-        /// <summary>
-        ///     Reads an UTF-8 encoded <see cref="string"/>.
-        /// </summary>
-        /// <param name="encodedLength">the encoded length of the string</param>
-        /// <returns>the string read</returns>
-        public string ReadUnprefixedString(int encodedLength)
-            => ReadUnprefixedString(encodedLength, Encoding.UTF8);
-
-        /// <summary>
-        ///     Reads a <see cref="string"/> using the specified <paramref name="encoding"/>.
-        /// </summary>
-        /// <param name="encodedLength">the encoded length of the string</param>
-        /// <param name="encoding">the encoding to use</param>
-        /// <returns>the string read</returns>
-        public string ReadUnprefixedString(int encodedLength, Encoding encoding)
-        {
-            // rent a buffer that can hold the string
-            var pooledBuffer = ArrayPool<byte>.Shared.Rent(encodedLength);
-
-            // ensure the pooled buffer is returned to the pool even if an exception is thrown
-            try
+            // ensure position is less than capacity
+            if (value >= Capacity)
             {
-                // read data
-                ReadBytes(pooledBuffer, encodedLength);
-
-                // decode string
-                return encoding.GetString(pooledBuffer, index: 0, encodedLength);
+                throw new ArgumentOutOfRangeException(nameof(value), value,
+                    "The specified position can not be beyond the buffer capacity.");
             }
-            finally
+
+            _cursor = value + _origin;
+        }
+    }
+
+    /// <summary>
+    ///     Gets the amount of bytes remaining until the buffer is full.
+    /// </summary>
+    public int Remaining => Length - Position;
+
+    /// <summary>
+    ///     Gets or sets the <see cref="byte"/> at the specified zero-based <paramref name="index"/>.
+    /// </summary>
+    /// <param name="index">the zero-based absolute <see cref="byte"/> index</param>
+    /// <returns>the <see cref="byte"/> at the specified zero-based <paramref name="index"/></returns>
+    public byte this[int index]
+    {
+        get
+        {
+            // ensure the index is in range
+            if ((uint)index >= (uint)_buffer.Length)
             {
-                // release / return the buffer to the array pool
-                ArrayPool<byte>.Shared.Return(pooledBuffer);
+                // The index was out of range
+                throw new IndexOutOfRangeException();
             }
+
+            // return byte at index
+            return _buffer[index];
         }
 
-        /// <summary>
-        ///     Reads an <see cref="uint"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public uint ReadUInt()
+        set
         {
-            var cursor = EmulateRead(sizeof(uint));
-            return BigEndian.ToUInt32(_buffer, cursor);
-        }
-
-        /// <summary>
-        ///     Reads an <see cref="ulong"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public ulong ReadULong()
-        {
-            var cursor = EmulateRead(sizeof(ulong));
-            return BigEndian.ToUInt64(_buffer, cursor);
-        }
-
-        /// <summary>
-        ///     Reads an <see cref="ushort"/> value from the buffer.
-        /// </summary>
-        /// <returns>the value read</returns>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        public ushort ReadUShort()
-        {
-            var cursor = EmulateRead(sizeof(ushort));
-            return BigEndian.ToUInt16(_buffer, cursor);
-        }
-
-        /// <summary>
-        ///     Resets the cursor position.
-        /// </summary>
-        public void Reset() => _cursor = _origin;
-
-        /// <summary>
-        ///     Creates an array of the buffer data.
-        /// </summary>
-        /// <returns>an array of the buffer data</returns>
-        public byte[] ToArray()
-        {
-            if (IsEmpty)
+            // ensure the index is in range
+            if ((uint)index >= (uint)Length)
             {
-                // return empty buffer
-                return _empty;
+                // The index was out of range
+                throw new IndexOutOfRangeException();
             }
 
-            // copy data
-            var buffer = new byte[Length];
-            Buffer.BlockCopy(_buffer, _origin, buffer, 0, Length);
-            return buffer;
+            // set byte at index
+            _buffer[index] = value;
+        }
+    }
+
+    /// <summary>
+    ///     Validates the specified buffer specification ( <paramref name="offset"/> and
+    ///     <paramref name="count"/> in relation with the specified <paramref name="buffer"/>).
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <param name="offset">the byte offset</param>
+    /// <param name="count">the number of bytes (relative to <paramref name="offset"/>)</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="offset"/> is negative.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="count"/> is negative.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+    /// </exception>
+    public static void ValidateBuffer(byte[] buffer, int offset, int count)
+    {
+        if (buffer is null)
+        {
+            throw new ArgumentNullException(nameof(buffer),
+                "The specified buffer can not be null.");
         }
 
-        /// <summary>
-        ///     Trims the internal buffer to the number of bytes used.
-        /// </summary>
-        public void Trim() => Capacity = Length;
-
-        /// <summary>
-        ///     Tries to get the internal buffer.
-        /// </summary>
-        /// <param name="buffer">the internal buffer</param>
-        /// <returns>a value indicating whether the buffer could be get</returns>
-        public bool TryGetBuffer(out ArraySegment<byte> buffer)
+        if (offset < 0)
         {
-            // ensure the buffer is exposable
-            if (!IsExposable)
+            throw new ArgumentOutOfRangeException(nameof(offset), offset,
+                "The specified offset can not be negative.");
+        }
+
+        if (count < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), count,
+                "The specified count can not be negative.");
+        }
+
+        if (buffer.Length - offset < count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), count,
+                "The specified buffer is too small for the specified count.");
+        }
+    }
+
+    /// <summary>
+    ///     Creates a memory stream from the buffer.
+    /// </summary>
+    /// <returns>the memory stream</returns>
+    public MemoryStream AsMemoryStream()
+        => new MemoryStream(_buffer, _origin, Length, !IsReadOnly);
+
+    /// <summary>
+    ///     Clears the buffer.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    public void Clear()
+    {
+        EnsureWritable();
+        Capacity = 0;
+    }
+
+    /// <summary>
+    ///     Copies the internal buffer to the specified <paramref name="stream"/>.
+    /// </summary>
+    /// <param name="stream">the stream to copy the buffer to</param>
+    /// <param name="full">
+    ///     a value indicating whether the full buffer should be copied (
+    ///     <see langword="false"/>, from start to end); or the buffer from the current cursor to
+    ///     the end ( <see langword="true"/>).
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="stream"/> is <see langword="null"/>.
+    /// </exception>
+    public void CopyTo(Stream stream, bool full = true)
+    {
+        if (stream is null)
+        {
+            throw new ArgumentNullException(nameof(stream));
+        }
+
+        stream.Write(_buffer, full ? _origin : _cursor, _length);
+    }
+
+    /// <summary>
+    ///     Copies the internal buffer to the specified <paramref name="stream"/> asynchronously.
+    /// </summary>
+    /// <param name="stream">the stream to copy the buffer to</param>
+    /// <param name="full">
+    ///     a value indicating whether the full buffer should be copied (
+    ///     <see langword="false"/>, from start to end); or the buffer from the current cursor to
+    ///     the end ( <see langword="true"/>).
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     a cancellation token used to propagate notification that the asynchronous operation
+    ///     should be canceled.
+    /// </param>
+    /// <returns>a task that represents the asynchronous operation</returns>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="stream"/> is <see langword="null"/>.
+    /// </exception>
+    public Task CopyToAsync(Stream stream, bool full = true, CancellationToken cancellationToken = default)
+    {
+        if (stream is null)
+        {
+            throw new ArgumentNullException(nameof(stream));
+        }
+
+        return stream.WriteAsync(_buffer, full ? _origin : _cursor, _length, cancellationToken);
+    }
+
+    /// <summary>
+    ///     Creates a <see cref="BigEndianReader"/> that reads from the buffer.
+    /// </summary>
+    /// <returns>the <see cref="BigEndianReader"/> instance</returns>
+    public BigEndianReader CreateReader()
+        => new BigEndianReader(CreateStream());
+
+    /// <summary>
+    ///     Creates a <see cref="Stream"/> that can write to / read from the buffer.
+    /// </summary>
+    /// <returns>the <see cref="Stream"/> instance</returns>
+    public Stream CreateStream()
+        => new ByteBufferStream(this);
+
+    /// <summary>
+    ///     Creates a <see cref="BigEndianWriter"/> that writes to the buffer.
+    /// </summary>
+    /// <returns>the <see cref="BigEndianWriter"/> instance</returns>
+    public BigEndianWriter CreateWriter()
+        => new BigEndianWriter(CreateStream());
+
+    /// <summary>
+    ///     Disposes the <see cref="ByteBuffer"/> instance and releases the buffer if it was rent
+    ///     from an array pool ( <see cref="IsPooled"/>).
+    /// </summary>
+    public virtual void Dispose()
+    {
+        if (_disposed)
+        {
+            // instance already disposed
+            return;
+        }
+
+        // set disposed flag
+        _disposed = true;
+
+        // check if the buffer was rent from the array pool
+        if (IsPooled)
+        {
+            // return the buffer to the array pool
+            _pool.Return(_buffer);
+        }
+    }
+
+    /// <summary>
+    ///     Gets the internal buffer.
+    /// </summary>
+    /// <returns>the internal buffer</returns>
+    /// <exception cref="UnauthorizedAccessException">
+    ///     thrown if the buffer is not exposable ( <see cref="IsExposable"/>).
+    /// </exception>
+    public ArraySegment<byte> GetBuffer()
+    {
+        // ensure buffer is exposable
+        if (!IsExposable)
+        {
+            throw new UnauthorizedAccessException("The internal buffer is not exposable.");
+        }
+
+        // create array segment
+        return new ArraySegment<byte>(_buffer, _origin, Length);
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="byte"/> sequence.
+    /// </summary>
+    /// <param name="count">the number of bytes to read</param>
+    /// <returns>the <see cref="byte"/> sequence</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public byte[] Read(int count)
+    {
+        var buffer = new byte[count];
+        ReadBytes(buffer, count);
+        return buffer;
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="bool"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public bool ReadBoolean() => ReadByte() != 0;
+
+    /// <summary>
+    ///     Reads a <see cref="byte"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public byte ReadByte()
+    {
+        var cursor = EmulateRead(1);
+        return _buffer[cursor];
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <param name="count">the number of bytes to read</param>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public void ReadBytes(byte[] buffer, int count)
+        => ReadBytes(buffer, offset: 0, count);
+
+    /// <summary>
+    ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public void ReadBytes(byte[] buffer)
+        => ReadBytes(buffer, offset: 0, buffer.Length);
+
+    /// <summary>
+    ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public void ReadBytes(ArraySegment<byte> buffer)
+        => ReadBytes(buffer.Array, buffer.Offset, buffer.Count);
+
+    /// <summary>
+    ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <param name="offset">the buffer write offset</param>
+    /// <param name="count">the number of bytes to read</param>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public void ReadBytes(byte[] buffer, int offset, int count)
+    {
+        var cursor = EmulateRead(count);
+        Buffer.BlockCopy(_buffer, cursor, buffer, offset, count);
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="byte"/> sequence and writes it to the specified <paramref name="buffer"/>.
+    /// </summary>
+    /// <param name="buffer">
+    ///     the memory address of the first element to write the data to
+    /// </param>
+    /// <param name="count">the number of bytes to read</param>
+    public void ReadBytes(byte* buffer, int count)
+    {
+        var cursor = EmulateRead(count);
+        Marshal.Copy(_buffer, cursor, new IntPtr(buffer), count);
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="double"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public double ReadDouble()
+    {
+        var cursor = EmulateRead(sizeof(double));
+        return BigEndian.ToDouble(_buffer, cursor);
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="float"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public float ReadFloat()
+    {
+        var cursor = EmulateRead(sizeof(float));
+        return BigEndian.ToFloat(_buffer, cursor);
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="Guid"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public Guid ReadGuid() => new Guid(Read(16));
+
+    /// <summary>
+    ///     Reads an <see cref="int"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public int ReadInt()
+    {
+        var cursor = EmulateRead(sizeof(int));
+        return BigEndian.ToInt32(_buffer, cursor);
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="long"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public long ReadLong()
+    {
+        var cursor = EmulateRead(sizeof(long));
+        return BigEndian.ToInt64(_buffer, cursor);
+    }
+
+    /// <summary>
+    ///     Reads a <see cref="sbyte"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public sbyte ReadSByte() => (sbyte)ReadByte();
+
+    /// <summary>
+    ///     Reads a <see cref="short"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public short ReadShort()
+    {
+        var cursor = EmulateRead(sizeof(short));
+        return BigEndian.ToInt16(_buffer, cursor);
+    }
+
+    /// <summary>
+    ///     Reads an UTF-8 encoded, length-prefixed <see cref="string"/>.
+    /// </summary>
+    /// <returns>the string read</returns>
+    public string ReadString() => ReadString(Encoding.UTF8);
+
+    /// <summary>
+    ///     Reads a length-prefixed <see cref="string"/> using the specified <paramref name="encoding"/>.
+    /// </summary>
+    /// <param name="encoding">the encoding to use</param>
+    /// <returns>the string read</returns>
+    public string ReadString(Encoding encoding)
+    {
+        // read the length prefix (a 2-byte long ushort indicating the number of bytes the string has)
+        var byteCount = ReadUShort();
+
+        // rent a buffer that can hold the string
+        var pooledBuffer = ArrayPool<byte>.Shared.Rent(byteCount);
+
+        // ensure the pooled buffer is returned to the pool even if an exception is thrown
+        try
+        {
+            // read data
+            ReadBytes(pooledBuffer, byteCount);
+
+            // decode string
+            return encoding.GetString(pooledBuffer, index: 0, byteCount);
+        }
+        finally
+        {
+            // release / return the buffer to the array pool
+            ArrayPool<byte>.Shared.Return(pooledBuffer);
+        }
+    }
+
+    /// <summary>
+    ///     Reads an UTF-8 encoded <see cref="string"/>.
+    /// </summary>
+    /// <param name="encodedLength">the encoded length of the string</param>
+    /// <returns>the string read</returns>
+    public string ReadUnprefixedString(int encodedLength)
+        => ReadUnprefixedString(encodedLength, Encoding.UTF8);
+
+    /// <summary>
+    ///     Reads a <see cref="string"/> using the specified <paramref name="encoding"/>.
+    /// </summary>
+    /// <param name="encodedLength">the encoded length of the string</param>
+    /// <param name="encoding">the encoding to use</param>
+    /// <returns>the string read</returns>
+    public string ReadUnprefixedString(int encodedLength, Encoding encoding)
+    {
+        // rent a buffer that can hold the string
+        var pooledBuffer = ArrayPool<byte>.Shared.Rent(encodedLength);
+
+        // ensure the pooled buffer is returned to the pool even if an exception is thrown
+        try
+        {
+            // read data
+            ReadBytes(pooledBuffer, encodedLength);
+
+            // decode string
+            return encoding.GetString(pooledBuffer, index: 0, encodedLength);
+        }
+        finally
+        {
+            // release / return the buffer to the array pool
+            ArrayPool<byte>.Shared.Return(pooledBuffer);
+        }
+    }
+
+    /// <summary>
+    ///     Reads an <see cref="uint"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public uint ReadUInt()
+    {
+        var cursor = EmulateRead(sizeof(uint));
+        return BigEndian.ToUInt32(_buffer, cursor);
+    }
+
+    /// <summary>
+    ///     Reads an <see cref="ulong"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public ulong ReadULong()
+    {
+        var cursor = EmulateRead(sizeof(ulong));
+        return BigEndian.ToUInt64(_buffer, cursor);
+    }
+
+    /// <summary>
+    ///     Reads an <see cref="ushort"/> value from the buffer.
+    /// </summary>
+    /// <returns>the value read</returns>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    public ushort ReadUShort()
+    {
+        var cursor = EmulateRead(sizeof(ushort));
+        return BigEndian.ToUInt16(_buffer, cursor);
+    }
+
+    /// <summary>
+    ///     Resets the cursor position.
+    /// </summary>
+    public void Reset() => _cursor = _origin;
+
+    /// <summary>
+    ///     Creates an array of the buffer data.
+    /// </summary>
+    /// <returns>an array of the buffer data</returns>
+    public byte[] ToArray()
+    {
+        if (IsEmpty)
+        {
+            // return empty buffer
+            return [];
+        }
+
+        // copy data
+        var buffer = new byte[Length];
+        Buffer.BlockCopy(_buffer, _origin, buffer, 0, Length);
+        return buffer;
+    }
+
+    /// <summary>
+    ///     Trims the internal buffer to the number of bytes used.
+    /// </summary>
+    public void Trim() => Capacity = Length;
+
+    /// <summary>
+    ///     Tries to get the internal buffer.
+    /// </summary>
+    /// <param name="buffer">the internal buffer</param>
+    /// <returns>a value indicating whether the buffer could be get</returns>
+    public bool TryGetBuffer(out ArraySegment<byte> buffer)
+    {
+        // ensure the buffer is exposable
+        if (!IsExposable)
+        {
+            // buffer is not exposable
+            buffer = default;
+            return false;
+        }
+
+        // create array segment
+        buffer = new ArraySegment<byte>(_buffer, _origin, count: Remaining);
+        return true;
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(byte value) => Write(new[] { value }, 0, 1);
+
+    /// <summary>
+    ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <param name="count">the number of bytes to write</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="count"/> is negative.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(byte[] buffer, int count) => Write(buffer, offset: 0, count);
+
+    /// <summary>
+    ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(byte[] buffer) => Write(buffer, offset: 0, buffer.Length);
+
+    /// <summary>
+    ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(ArraySegment<byte> buffer) => Write(buffer.Array, buffer.Offset, buffer.Count);
+
+    /// <summary>
+    ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
+    /// </summary>
+    /// <param name="buffer">the buffer</param>
+    /// <param name="offset">the buffer read offset</param>
+    /// <param name="count">the number of bytes to write</param>
+    /// <exception cref="ArgumentNullException">
+    ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="offset"/> is negative.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="count"/> is negative.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(byte[] buffer, int offset, int count)
+    {
+        ValidateBuffer(buffer, offset, count);
+
+        // ensure enough capacity is remaining
+        EnsureCapacity(Position + count);
+
+        // copy data
+        Buffer.BlockCopy(buffer, offset, _buffer, _cursor, count);
+        IncreasePosition(count);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="buffer"/> to the buffer.
+    /// </summary>
+    /// <param name="buffer">
+    ///     a pointer pointing to the memory address of the first element of the buffer to copy
+    ///     to the internal buffer
+    /// </param>
+    /// <param name="count">the number of bytes to copy</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(byte* buffer, int count)
+    {
+        var cursor = EmulateWrite(count);
+        Marshal.Copy(new IntPtr(buffer), _buffer, cursor, count);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(int value)
+    {
+        var position = EmulateWrite(sizeof(int));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(uint value)
+    {
+        var position = EmulateWrite(sizeof(uint));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(ushort value)
+    {
+        var position = EmulateWrite(sizeof(ushort));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(float value)
+    {
+        var position = EmulateWrite(sizeof(float));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(double value)
+    {
+        var position = EmulateWrite(sizeof(double));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(bool value)
+    {
+        var position = EmulateWrite(sizeof(bool));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(short value)
+    {
+        var position = EmulateWrite(sizeof(short));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(sbyte value)
+    {
+        var position = EmulateWrite(sizeof(sbyte));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(long value)
+    {
+        var position = EmulateWrite(sizeof(long));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(ulong value)
+    {
+        var position = EmulateWrite(sizeof(ulong));
+        BigEndian.GetBytes(_buffer, value, position);
+    }
+
+    /// <summary>
+    ///     Writes the specified <paramref name="value"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public void Write(Guid value) => Write(value.ToByteArray());
+
+    /// <summary>
+    ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
+    ///     prefix to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="charCount">the number of characters</param>
+    /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public int Write(string value, int charCount) => Write(value, charCount, Encoding.UTF8);
+
+    /// <summary>
+    ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
+    ///     prefix to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
+    ///     length ( <c>0xFFFF</c>)
+    /// </exception>
+    public int Write(string value) => Write(value, Encoding.UTF8);
+
+    /// <summary>
+    ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
+    ///     prefix to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="charIndex">the character index</param>
+    /// <param name="charCount">the number of characters</param>
+    /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
+    ///     length ( <c>0xFFFF</c>)
+    /// </exception>
+    public int Write(string value, int charIndex, int charCount)
+        => Write(value, charIndex, charCount, Encoding.UTF8);
+
+    /// <summary>
+    ///     Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
+    ///     2-byte <see cref="ushort"/> length prefix to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="charCount">the number of characters</param>
+    /// <param name="encoding">the encoding to use</param>
+    /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
+    ///     length ( <c>0xFFFF</c>)
+    /// </exception>
+    public int Write(string value, int charCount, Encoding encoding)
+        => Write(value, charIndex: 0, charCount, encoding);
+
+    /// <summary>
+    ///     Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
+    ///     2-byte <see cref="ushort"/> length prefix to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="encoding">the encoding to use</param>
+    /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
+    ///     length ( <c>0xFFFF</c>)
+    /// </exception>
+    public int Write(string value, Encoding encoding)
+        => Write(value, charIndex: 0, value.Length, encoding);
+
+    /// <summary>
+    ///     Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
+    ///     2-byte <see cref="ushort"/> length prefix to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="charIndex">the character index</param>
+    /// <param name="charCount">the number of characters</param>
+    /// <param name="encoding">the encoding to use</param>
+    /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
+    ///     length ( <c>0xFFFF</c>)
+    /// </exception>
+    public int Write(string value, int charIndex, int charCount, Encoding encoding)
+    {
+        // rent a buffer that can hold the string and the 2-byte ushort length prefix
+        var pooledBuffer = ArrayPool<byte>.Shared.Rent(encoding.GetMaxByteCount(charCount) + 2);
+
+        // ensure the pooled buffer is returned to the pool even if an exception is thrown
+        try
+        {
+            // encode the string starting at buffer offset 2
+            var length = encoding.GetBytes(value, charIndex, charCount, pooledBuffer, byteIndex: 2);
+
+            // ensure the length does not overflow
+            if (length > MaximumStringByteSize)
             {
-                // buffer is not exposable
-                buffer = default;
-                return false;
+                throw new ArgumentException($"The specified string overflows the maximum " +
+                    $"encoded byte length ({MaximumStringByteSize}, 0xFFFF)", nameof(value));
             }
 
-            // create array segment
-            buffer = new ArraySegment<byte>(_buffer, _origin, count: Remaining);
-            return true;
+            // encode length prefix
+            pooledBuffer[0] = (byte)(length >> 8);
+            pooledBuffer[1] = (byte)(length & 0xFF);
+
+            // write buffer
+            Write(pooledBuffer, offset: 0, length + 2);
+
+            return length + 2;
         }
-
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(byte value) => Write(new[] { value }, 0, 1);
-
-        /// <summary>
-        ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <param name="count">the number of bytes to write</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="count"/> is negative.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(byte[] buffer, int count) => Write(buffer, offset: 0, count);
-
-        /// <summary>
-        ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(byte[] buffer) => Write(buffer, offset: 0, buffer.Length);
-
-        /// <summary>
-        ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(ArraySegment<byte> buffer) => Write(buffer.Array, buffer.Offset, buffer.Count);
-
-        /// <summary>
-        ///     Writes the specified <paramref name="buffer"/> to the internal buffer.
-        /// </summary>
-        /// <param name="buffer">the buffer</param>
-        /// <param name="offset">the buffer read offset</param>
-        /// <param name="count">the number of bytes to write</param>
-        /// <exception cref="ArgumentNullException">
-        ///     thrown if the specified <paramref name="buffer"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="offset"/> is negative.
-        /// </exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="count"/> is negative.
-        /// </exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     thrown if the specified <paramref name="buffer"/> is too small for the specified <paramref name="count"/>.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(byte[] buffer, int offset, int count)
+        finally
         {
-            ValidateBuffer(buffer, offset, count);
-
-            // ensure enough capacity is remaining
-            EnsureCapacity(Position + count);
-
-            // copy data
-            Buffer.BlockCopy(buffer, offset, _buffer, _cursor, count);
-            IncreasePosition(count);
+            // release / return the buffer to the array pool
+            ArrayPool<byte>.Shared.Return(pooledBuffer);
         }
+    }
 
-        /// <summary>
-        ///     Writes the specified <paramref name="buffer"/> to the buffer.
-        /// </summary>
-        /// <param name="buffer">
-        ///     a pointer pointing to the memory address of the first element of the buffer to copy
-        ///     to the internal buffer
-        /// </param>
-        /// <param name="count">the number of bytes to copy</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(byte* buffer, int count)
+    /// <summary>
+    ///     Writes a string encoded in UTF-8 to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="charCount">the number of characters</param>
+    /// <returns>the number of total bytes written</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public int WriteUnprefixed(string value, int charCount) => Write(value, charCount, Encoding.UTF8);
+
+    /// <summary>
+    ///     Writes a string encoded in UTF-8 prefixed to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <returns>the number of total bytes written</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public int WriteUnprefixed(string value) => Write(value, Encoding.UTF8);
+
+    /// <summary>
+    ///     Writes a string encoded in UTF-8 prefixed to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="charIndex">the character index</param>
+    /// <param name="charCount">the number of characters</param>
+    /// <returns>the number of total bytes written</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public int WriteUnprefixed(string value, int charIndex, int charCount)
+        => WriteUnprefixed(value, charIndex, charCount, Encoding.UTF8);
+
+    /// <summary>
+    ///     Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="charCount">the number of characters</param>
+    /// <param name="encoding">the encoding to use</param>
+    /// <returns>the number of total bytes written</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public int WriteUnprefixed(string value, int charCount, Encoding encoding)
+        => WriteUnprefixed(value, charIndex: 0, charCount, encoding);
+
+    /// <summary>
+    ///     Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="encoding">the encoding to use</param>
+    /// <returns>the number of total bytes written</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public int WriteUnprefixed(string value, Encoding encoding)
+        => WriteUnprefixed(value, charIndex: 0, value.Length, encoding);
+
+    /// <summary>
+    ///     Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
+    /// </summary>
+    /// <param name="value">the value to write</param>
+    /// <param name="charIndex">the character index</param>
+    /// <param name="charCount">the number of characters</param>
+    /// <param name="encoding">the encoding to use</param>
+    /// <returns>the number of total bytes written</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    public int WriteUnprefixed(string value, int charIndex, int charCount, Encoding encoding)
+    {
+        // rent a buffer that can hold the string and the 2-byte ushort length prefix
+        var pooledBuffer = ArrayPool<byte>.Shared.Rent(encoding.GetMaxByteCount(charCount));
+
+        // ensure the pooled buffer is returned to the pool even if an exception is thrown
+        try
         {
-            var cursor = EmulateWrite(count);
-            Marshal.Copy(new IntPtr(buffer), _buffer, cursor, count);
-        }
+            // encode the string starting at buffer offset 2
+            var length = encoding.GetBytes(value, charIndex, charCount, pooledBuffer, byteIndex: 0);
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(int value)
+            // write to buffer
+            Write(pooledBuffer, offset: 0, length);
+
+            return length;
+        }
+        finally
         {
-            var position = EmulateWrite(sizeof(int));
-            BigEndian.GetBytes(_buffer, value, position);
+            // release / return the buffer to the array pool
+            ArrayPool<byte>.Shared.Return(pooledBuffer);
         }
+    }
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(uint value)
+    /// <summary>
+    ///     Ensures that the buffer has the specified <paramref name="capacity"/>.
+    /// </summary>
+    /// <param name="capacity">the target buffer capacity</param>
+    protected void EnsureCapacity(int capacity)
+    {
+        EnsureWritable();
+
+        // check if the required byte count is already satisfied
+        if (Capacity >= capacity)
         {
-            var position = EmulateWrite(sizeof(uint));
-            BigEndian.GetBytes(_buffer, value, position);
+            // there are enough bytes remaining
+            return;
         }
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(ushort value)
+        // we have to increase the capacity (in 256 byte chunks)
+        Capacity += (((_capacity + capacity) >> 8) + 1) << 8;
+    }
+
+    /// <summary>
+    ///     Ensures that the buffer is expandable.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
+    /// </exception>
+    protected void EnsureExpandable()
+    {
+        if (!IsExpandable || !IsPooled)
         {
-            var position = EmulateWrite(sizeof(ushort));
-            BigEndian.GetBytes(_buffer, value, position);
+            throw new InvalidOperationException("The buffer is not expandable.");
         }
+    }
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(float value)
+    /// <summary>
+    ///     Ensures that the instance was not disposed.
+    /// </summary>
+    /// <exception cref="ObjectDisposedException">
+    ///     thrown if the <see cref="ByteBuffer"/> instance is disposed.
+    /// </exception>
+    protected void EnsureNotDisposed()
+    {
+        // check if the instance was already disposed
+        if (_disposed)
         {
-            var position = EmulateWrite(sizeof(float));
-            BigEndian.GetBytes(_buffer, value, position);
+            throw new ObjectDisposedException(nameof(ByteBuffer));
         }
+    }
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(double value)
+    /// <summary>
+    ///     Ensures that a specific amount of bytes is remaining to read / write in the buffer.
+    /// </summary>
+    /// <param name="count">the number of bytes</param>
+    /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
+    protected void EnsureRemaining(int count)
+    {
+        if (Remaining < count)
         {
-            var position = EmulateWrite(sizeof(double));
-            BigEndian.GetBytes(_buffer, value, position);
+            throw new InvalidOperationException("The buffer is too small." +
+                $"\nThere are {Remaining} bytes remaining, but {count} bytes are required.");
         }
+    }
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(bool value)
+    /// <summary>
+    ///     Ensures that the buffer is writable.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
+    /// </exception>
+    protected void EnsureWritable()
+    {
+        if (IsReadOnly)
         {
-            var position = EmulateWrite(sizeof(bool));
-            BigEndian.GetBytes(_buffer, value, position);
+            throw new InvalidOperationException("The buffer is read-only.");
         }
+    }
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(short value)
-        {
-            var position = EmulateWrite(sizeof(short));
-            BigEndian.GetBytes(_buffer, value, position);
-        }
+    private int EmulateRead(int count)
+    {
+        // ensure enough bytes are available to read
+        EnsureRemaining(count);
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(sbyte value)
-        {
-            var position = EmulateWrite(sizeof(sbyte));
-            BigEndian.GetBytes(_buffer, value, position);
-        }
+        // store current cursor position
+        var cursorPosition = _cursor;
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(long value)
-        {
-            var position = EmulateWrite(sizeof(long));
-            BigEndian.GetBytes(_buffer, value, position);
-        }
+        // increase position
+        IncreasePosition(count);
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(ulong value)
-        {
-            var position = EmulateWrite(sizeof(ulong));
-            BigEndian.GetBytes(_buffer, value, position);
-        }
+        return cursorPosition;
+    }
 
-        /// <summary>
-        ///     Writes the specified <paramref name="value"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public void Write(Guid value) => Write(value.ToByteArray());
+    private int EmulateWrite(int count)
+    {
+        // store current cursor position
+        var cursorPosition = _cursor;
 
-        /// <summary>
-        ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
-        ///     prefix to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="charCount">the number of characters</param>
-        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public int Write(string value, int charCount) => Write(value, charCount, Encoding.UTF8);
+        // ensure enough capacity is remaining
+        EnsureCapacity(Position + count);
 
-        /// <summary>
-        ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
-        ///     prefix to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
-        ///     length ( <c>0xFFFF</c>)
-        /// </exception>
-        public int Write(string value) => Write(value, Encoding.UTF8);
+        // increase position
+        IncreasePosition(count);
 
-        /// <summary>
-        ///     Writes a string encoded in UTF-8 prefixed with a 2-byte <see cref="ushort"/> length
-        ///     prefix to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="charIndex">the character index</param>
-        /// <param name="charCount">the number of characters</param>
-        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
-        ///     length ( <c>0xFFFF</c>)
-        /// </exception>
-        public int Write(string value, int charIndex, int charCount)
-            => Write(value, charIndex, charCount, Encoding.UTF8);
+        return cursorPosition;
+    }
 
-        /// <summary>
-        ///     Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
-        ///     2-byte <see cref="ushort"/> length prefix to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="charCount">the number of characters</param>
-        /// <param name="encoding">the encoding to use</param>
-        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
-        ///     length ( <c>0xFFFF</c>)
-        /// </exception>
-        public int Write(string value, int charCount, Encoding encoding)
-            => Write(value, charIndex: 0, charCount, encoding);
-
-        /// <summary>
-        ///     Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
-        ///     2-byte <see cref="ushort"/> length prefix to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="encoding">the encoding to use</param>
-        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
-        ///     length ( <c>0xFFFF</c>)
-        /// </exception>
-        public int Write(string value, Encoding encoding)
-            => Write(value, charIndex: 0, value.Length, encoding);
-
-        /// <summary>
-        ///     Writes a string encoded in the specified <paramref name="encoding"/> prefixed with a
-        ///     2-byte <see cref="ushort"/> length prefix to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="charIndex">the character index</param>
-        /// <param name="charCount">the number of characters</param>
-        /// <param name="encoding">the encoding to use</param>
-        /// <returns>the number of total bytes written (including 2-byte length prefix)</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///     thrown if the specified <paramref name="value"/> overflows the maximum encoded byte
-        ///     length ( <c>0xFFFF</c>)
-        /// </exception>
-        public int Write(string value, int charIndex, int charCount, Encoding encoding)
-        {
-            // rent a buffer that can hold the string and the 2-byte ushort length prefix
-            var pooledBuffer = ArrayPool<byte>.Shared.Rent(encoding.GetMaxByteCount(charCount) + 2);
-
-            // ensure the pooled buffer is returned to the pool even if an exception is thrown
-            try
-            {
-                // encode the string starting at buffer offset 2
-                var length = encoding.GetBytes(value, charIndex, charCount, pooledBuffer, byteIndex: 2);
-
-                // ensure the length does not overflow
-                if (length > MaximumStringByteSize)
-                {
-                    throw new ArgumentException($"The specified string overflows the maximum " +
-                        $"encoded byte length ({MaximumStringByteSize}, 0xFFFF)", nameof(value));
-                }
-
-                // encode length prefix
-                pooledBuffer[0] = (byte)(length >> 8);
-                pooledBuffer[1] = (byte)(length & 0xFF);
-
-                // write buffer
-                Write(pooledBuffer, offset: 0, length + 2);
-
-                return length + 2;
-            }
-            finally
-            {
-                // release / return the buffer to the array pool
-                ArrayPool<byte>.Shared.Return(pooledBuffer);
-            }
-        }
-
-        /// <summary>
-        ///     Writes a string encoded in UTF-8 to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="charCount">the number of characters</param>
-        /// <returns>the number of total bytes written</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public int WriteUnprefixed(string value, int charCount) => Write(value, charCount, Encoding.UTF8);
-
-        /// <summary>
-        ///     Writes a string encoded in UTF-8 prefixed to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <returns>the number of total bytes written</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public int WriteUnprefixed(string value) => Write(value, Encoding.UTF8);
-
-        /// <summary>
-        ///     Writes a string encoded in UTF-8 prefixed to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="charIndex">the character index</param>
-        /// <param name="charCount">the number of characters</param>
-        /// <returns>the number of total bytes written</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public int WriteUnprefixed(string value, int charIndex, int charCount)
-            => WriteUnprefixed(value, charIndex, charCount, Encoding.UTF8);
-
-        /// <summary>
-        ///     Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="charCount">the number of characters</param>
-        /// <param name="encoding">the encoding to use</param>
-        /// <returns>the number of total bytes written</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public int WriteUnprefixed(string value, int charCount, Encoding encoding)
-            => WriteUnprefixed(value, charIndex: 0, charCount, encoding);
-
-        /// <summary>
-        ///     Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="encoding">the encoding to use</param>
-        /// <returns>the number of total bytes written</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public int WriteUnprefixed(string value, Encoding encoding)
-            => WriteUnprefixed(value, charIndex: 0, value.Length, encoding);
-
-        /// <summary>
-        ///     Writes a string encoded in the specified <paramref name="encoding"/> to the buffer.
-        /// </summary>
-        /// <param name="value">the value to write</param>
-        /// <param name="charIndex">the character index</param>
-        /// <param name="charCount">the number of characters</param>
-        /// <param name="encoding">the encoding to use</param>
-        /// <returns>the number of total bytes written</returns>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        public int WriteUnprefixed(string value, int charIndex, int charCount, Encoding encoding)
-        {
-            // rent a buffer that can hold the string and the 2-byte ushort length prefix
-            var pooledBuffer = ArrayPool<byte>.Shared.Rent(encoding.GetMaxByteCount(charCount));
-
-            // ensure the pooled buffer is returned to the pool even if an exception is thrown
-            try
-            {
-                // encode the string starting at buffer offset 2
-                var length = encoding.GetBytes(value, charIndex, charCount, pooledBuffer, byteIndex: 0);
-
-                // write to buffer
-                Write(pooledBuffer, offset: 0, length);
-
-                return length;
-            }
-            finally
-            {
-                // release / return the buffer to the array pool
-                ArrayPool<byte>.Shared.Return(pooledBuffer);
-            }
-        }
-
-        /// <summary>
-        ///     Ensures that the buffer has the specified <paramref name="capacity"/>.
-        /// </summary>
-        /// <param name="capacity">the target buffer capacity</param>
-        protected void EnsureCapacity(int capacity)
-        {
-            EnsureWritable();
-
-            // check if the required byte count is already satisfied
-            if (Capacity >= capacity)
-            {
-                // there are enough bytes remaining
-                return;
-            }
-
-            // we have to increase the capacity (in 256 byte chunks)
-            Capacity += (((_capacity + capacity) >> 8) + 1) << 8;
-        }
-
-        /// <summary>
-        ///     Ensures that the buffer is expandable.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is not expandable ( <see cref="IsExpandable"/>)
-        /// </exception>
-        protected void EnsureExpandable()
-        {
-            if (!IsExpandable || !IsPooled)
-            {
-                throw new InvalidOperationException("The buffer is not expandable.");
-            }
-        }
-
-        /// <summary>
-        ///     Ensures that the instance was not disposed.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">
-        ///     thrown if the <see cref="ByteBuffer"/> instance is disposed.
-        /// </exception>
-        protected void EnsureNotDisposed()
-        {
-            // check if the instance was already disposed
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(nameof(ByteBuffer));
-            }
-        }
-
-        /// <summary>
-        ///     Ensures that a specific amount of bytes is remaining to read / write in the buffer.
-        /// </summary>
-        /// <param name="count">the number of bytes</param>
-        /// <exception cref="InvalidOperationException">thrown if the buffer is too small.</exception>
-        protected void EnsureRemaining(int count)
-        {
-            if (Remaining < count)
-            {
-                throw new InvalidOperationException("The buffer is too small." +
-                    $"\nThere are {Remaining} bytes remaining, but {count} bytes are required.");
-            }
-        }
-
-        /// <summary>
-        ///     Ensures that the buffer is writable.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        ///     thrown if the buffer is read-only ( <see cref="IsReadOnly"/>)
-        /// </exception>
-        protected void EnsureWritable()
-        {
-            if (IsReadOnly)
-            {
-                throw new InvalidOperationException("The buffer is read-only.");
-            }
-        }
-
-        private int EmulateRead(int count)
-        {
-            // ensure enough bytes are available to read
-            EnsureRemaining(count);
-
-            // store current cursor position
-            var cursorPosition = _cursor;
-
-            // increase position
-            IncreasePosition(count);
-
-            return cursorPosition;
-        }
-
-        private int EmulateWrite(int count)
-        {
-            // store current cursor position
-            var cursorPosition = _cursor;
-
-            // ensure enough capacity is remaining
-            EnsureCapacity(Position + count);
-
-            // increase position
-            IncreasePosition(count);
-
-            return cursorPosition;
-        }
-
-        private void IncreasePosition(int count)
-        {
-            _cursor += count;
-            _length = Math.Max(_cursor - _origin, _length);
-        }
+    private void IncreasePosition(int count)
+    {
+        _cursor += count;
+        _length = Math.Max(_cursor - _origin, _length);
     }
 }
