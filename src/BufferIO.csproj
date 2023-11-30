@@ -16,7 +16,7 @@
     <RepositoryUrl>https://github.com/angelobreuer/BufferIO</RepositoryUrl>
     <PackageTags>bufferio,bigendian,big endian,input output,io,buffer,binary,stream</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
